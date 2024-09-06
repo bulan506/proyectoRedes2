@@ -69,3 +69,25 @@
     border-radius: 5px;
     white-space: nowrap;
   }
+
+  
+  
+  .player-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .players-div {
+    display: flex; /* Alineación en fila */
+    flex-wrap: wrap; /* Permitir múltiples filas si es necesario */
+    gap: 10px; /* Espacio entre los círculos */
+  }
+  
