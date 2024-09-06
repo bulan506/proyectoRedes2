@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Card, Button, Form, Container, Row, Col, ListGroup, Alert, Modal } from 'react-bootstrap';
+import './styles/GameInterface.css';
 
 const SERVER = process.env.NEXT_PUBLIC_SERVER;
 
@@ -12,9 +13,11 @@ export default function GamePage() {
   const [playerName, setPlayerName] = useState('');
   const [gameName, setGameName] = useState('');
   const [gamePassword, setGamePassword] = useState('');
-  const [stage, setStage] = useState('name'); // 'name', 'games', 'create'
+  const [stage, setStage] = useState('name'); // 'name', 'games', 'create', 'match'
   const [modalMessage, setModalMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [playerStatus, setPlayerStatus] = useState('ciudadano ejemplar');
+  const [players, setPlayers] = useState([]);
 
   useEffect(() => {
     if (stage === 'games') {
@@ -78,6 +81,38 @@ export default function GamePage() {
       console.error('Error fetching games:', err);
     }
   };
+
+  const fetchGameData = async (gameId, password, player) => {
+    try {
+      const response = await fetch(`${SERVER}api/games/${gameId}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          password: password,
+          player: player,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setPlayers(data.players);
+      } else if (response.status === 401 || response.status === 403 || response.status === 404) {
+        showModalWithMessage(data.msg);
+      }else{
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+    } catch (error) {
+      setError(error.message);
+      console.error('Error getting game data:', error);
+    }
+  };
+
   const handleNameSubmit = (e) => {
     e.preventDefault();
     if (playerName.trim()) {
@@ -155,7 +190,9 @@ export default function GamePage() {
               required
             />
           </Form.Group>
-          <Button variant="success" type="submit" className="mt-3">
+
+          {/*A este botón hay que ponerle el type="submit", lo dejé así sólo para poder avanzar a la interfaz del juego*/}
+          <Button variant="success" onClick={() => setStage('match')} className="mt-3">
             Crear Juego
           </Button>
           <Button variant="secondary" onClick={() => setStage('name')} className="mt-3">
@@ -186,11 +223,56 @@ export default function GamePage() {
     </Container>
   );
 
+  const renderGameInterface = () => {
+    const toggleStatus = () => {
+      setPlayerStatus((prevStatus) => 
+        prevStatus === 'ciudadano ejemplar' ? 'psicópata' : 'ciudadano ejemplar'
+      );
+    };
+
+    //Esto hay que quitarlo, es provisional para ver cómo quedaban los botones de los jugadores
+    const playersTest = ['Jugador 1', 'Jugador 2', 'Jugador 3', 'Jugador 4'];
+
+    return(
+      <>
+        <div className="game-interface">
+          <div className="player-info">
+            <img 
+              src="https://via.placeholder.com/150" 
+              alt="Foto del Jugador" 
+              className="player-photo" 
+            />
+            <p>{playerName}</p>
+            <p 
+              className={`player-status ${
+                playerStatus === 'ciudadano ejemplar' ? 'status-good' : 'status-bad'
+              }`}
+            >
+              {playerStatus}
+            </p>
+          </div>
+          <div className="actions">
+            <button>Trabajar</button>
+            <button>Sabotear</button>
+            <button onClick={toggleStatus}>Cambiar Estado</button>
+          </div>
+        </div>
+        <div className="players-div">
+          {/*Cambiar playersTest por players*/}
+          {playersTest.map((player, index) => (
+            <button key={index}>{player}</button>
+          ))}
+        </div>
+      </>
+    );
+  };
+
   return (
     <Container>
       {stage === 'name' && renderNameCard()}
       {stage === 'create' && renderCreateGameForm()}
       {stage === 'games' && renderGamesList()}
+      {stage === 'match' && renderGameInterface()}
 
       {/* Modal para mensajes de éxito o error */}
       <Modal show={showModal} onHide={handleCloseModal}>
