@@ -84,6 +84,8 @@
     margin: 5px;
     text-align: center;
     font-size: 12px;
+    font-weight: bold;
+
   }
   .players-div {
     display: flex; /* Alineación en fila */
