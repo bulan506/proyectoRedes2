@@ -300,7 +300,7 @@ export default function GamePage() {
             <Modal.Title>Ingresar al Juego</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Form onSubmit={(e) => { e.preventDefault(); handlePasswordSubmit(); }}>
+            <Form onSubmit={(e) => { e.preventDefault(); handlePasswordSubmit(selectedGame); }}>
               <Form.Group>
                 <Form.Label>Ingrese la contraseña del juego</Form.Label>
                 <Form.Control
@@ -317,7 +317,7 @@ export default function GamePage() {
             <Button variant="secondary" onClick={() => setShowPasswordModal(false)}>
               Cancelar
             </Button>
-            <Button variant="primary" onClick={handlePasswordSubmit}>
+            <Button variant="primary" onClick={(e) =>{handlePasswordSubmit(selectedGame)}}>
               Unirse al Juego
             </Button>
           </Modal.Footer>
