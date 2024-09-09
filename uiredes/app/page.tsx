@@ -62,7 +62,7 @@ export default function GamePage() {
     }
     try {
       const response = await fetch(`${SERVER}api/games/`, {
-        method: 'POST', // Método POST para crear partidas
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
@@ -92,27 +92,31 @@ export default function GamePage() {
     }
   };
 
-  const handleNameSubmit = (e: any) => {
+  const handleNameSubmit = (e) => {
     e.preventDefault();
     if (playerName.trim()) {
       setStage('games');
     }
   };
 
-  const showModalWithMessage = (message: string) => {
+  const showModalWithMessage = (message) => {
     setModalMessage(message);
     setShowModal(true);
   };
 
   const handleCloseModal = () => setShowModal(false);
 
-  const handleCreateGame = (e: any) => {
+  const handleCreateGame = (e) => {
     e.preventDefault();
     fetchCreateGames();
   };
 
   const handleJoinGame = (game) => {
-   setSelectedGame(game)
+    if (game.players.length >= 10) {
+      showModalWithMessage('Este juego ya tiene el máximo de 10 jugadores.');
+      return;
+    }
+    setSelectedGame(game);
     if (game.password) {
       setShowPasswordModal(true);
     } else {
@@ -122,6 +126,10 @@ export default function GamePage() {
 
   const handlePasswordSubmit = async (game) => {
     const currentGame = game || selectedGame;
+    if (currentGame.players.length >= 10) {
+      showModalWithMessage('Este juego ya tiene el máximo de 10 jugadores.');
+      return;
+    }
     if (selectedGame && selectedGame.password && (gamePassword.trim() == '' || gamePassword.trim().length < 2)) {
       showModalWithMessage('La contraseña no puede estar vacía, o no cumple con el estandard');
       return;
@@ -142,13 +150,17 @@ export default function GamePage() {
 
       const data = await response.json();
       if (response.status === 200) {
+        if (data.data.players.length > 10) {
+          showModalWithMessage('Lo sentimos, el juego ya está lleno (10 jugadores máximo).');
+          return;
+        }
         setGameId(selectedGame.id);
         setStage('match');
         setShowPasswordModal(false);
         setGamePassword(gamePassword);
-        setGameOwner(data.data.owner)
-        setUsePassword(data.data.password)
-        setSelectedGame(data.data)
+        setGameOwner(data.data.owner);
+        setUsePassword(data.data.password);
+        setSelectedGame(data.data);
       } else if (response.status === 402 || response.status === 404 || response.status === 409 || response.status === 428 || response.status === 403) {
         showModalWithMessage(data.msg);
       } else if (response.status === 400) {
@@ -162,14 +174,12 @@ export default function GamePage() {
     }
   };
 
-
   const handleCheckboxChange = (event) => {
     setUsePassword(event.target.checked);
     if (!event.target.checked) {
       setGamePassword('');
     }
   };
-
 
   const renderNameCard = () => (
     <Card className="text-center mt-5">
@@ -267,12 +277,10 @@ export default function GamePage() {
             </div>
             <Button
               variant="primary"
-              onClick={() => {
-                setSelectedGame(game);
-                handleJoinGame(game);
-              }}
+              onClick={() => handleJoinGame(game)}
+              disabled={game.players.length >= 10}
             >
-              Jugar
+              {game.players.length >= 10 ? 'Lleno' : 'Jugar'}
             </Button>
           </ListGroup.Item>
         ))}
@@ -317,7 +325,7 @@ export default function GamePage() {
             <Button variant="secondary" onClick={() => setShowPasswordModal(false)}>
               Cancelar
             </Button>
-            <Button variant="primary" onClick={(e) =>{handlePasswordSubmit(selectedGame)}}>
+            <Button variant="primary" onClick={(e) => { handlePasswordSubmit(selectedGame) }}>
               Unirse al Juego
             </Button>
           </Modal.Footer>
@@ -325,4 +333,4 @@ export default function GamePage() {
       </>
     </Container>
   );
-};
+}
