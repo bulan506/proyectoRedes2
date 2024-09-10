@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, ListGroup, Button, Alert } from 'react-bootstrap';
 
-const GamesList = ({ games, error, handleJoinGame, setStage }) => {
+const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame }) => {
   return (
     <Container className="mt-5">
       <h2 className="text-center">Juegos Disponibles</h2>
@@ -21,6 +21,7 @@ const GamesList = ({ games, error, handleJoinGame, setStage }) => {
             <Button
               variant="primary"
               onClick={() => {
+                setSelectedGame(game);
                 handleJoinGame(game);
               }}
             >

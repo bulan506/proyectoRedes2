@@ -1,13 +1,14 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Alert, Modal } from 'react-bootstrap';
+import { Container, Alert, Modal, Form, Button } from 'react-bootstrap';
 import "@/app/styles/GameInterface.css";
 import ModalComponent from '@/app/components/ModalComponet';
 import GameScreen from '@/app/GameScreen/GameScreen';
 import NameCard from '@/app/components/NameCard';
 import CreateGameForm from '@/app/components/CreateGameForm';
 import GamesList from '@/app/components/GamesList';
+import PasswordModal from '@/app/components/passwordModal';
 
 const SERVER = process.env.NEXT_PUBLIC_SERVER;
 
@@ -196,6 +197,7 @@ export default function GamePage() {
           error={error}
           handleJoinGame={handleJoinGame}
           setStage={setStage}
+          setSelectedGame={setSelectedGame}
         />
       )}
       {stage === 'match' && (
@@ -211,10 +213,14 @@ export default function GamePage() {
         modalMessage={modalMessage}
       />
       {/* Modal para contraseña */}
-      <Modal show={showPasswordModal} onHide={() => setShowPasswordModal(false)}>
-        {/* Contenido del modal */}
-      </Modal>
+      <PasswordModal 
+        show={showPasswordModal} 
+        onHide={() => setShowPasswordModal(false)} 
+        gamePassword={gamePassword}
+        setGamePassword={setGamePassword}
+        handlePasswordSubmit={handlePasswordSubmit}
+        selectedGame={selectedGame}
+      />
     </Container>
   );
 }
-
