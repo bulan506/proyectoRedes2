@@ -1,0 +1,95 @@
+.game-interface {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    width: 350px;
+    margin: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 5%
+  }
+  
+  .player-info {
+    text-align: center;
+  }
+  
+  .player-photo {
+    width: 125px;
+    height: 125px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  
+  .player-status {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  .status-good {
+    color: green;
+  }
+  
+  .status-bad {
+    color: red;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s;
+  }
+  
+  .actions button:hover {
+    background-color: #0056b3;
+  }
+  
+  .players-div{
+    display: flex;
+    gap: 2%;
+    align-items: center;
+    width: fit-content;
+    border-radius: 5px;
+    margin: auto;
+    margin-top: 5%;
+  }
+
+  .players-div button{
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  
+  
+  .player-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+
+  }
+  .players-div {
+    display: flex; /* Alineación en fila */
+    flex-wrap: wrap; /* Permitir múltiples filas si es necesario */
+    gap: 10px; /* Espacio entre los círculos */
+  }
+  

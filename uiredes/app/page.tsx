@@ -2,9 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Card, Button, Form, Container, Row, Col, ListGroup, Alert, Modal } from 'react-bootstrap';
-
+import "@/app/styles/GameInterface.css";
+import ModalComponent from '@/app/components/ModalComponet';
+import GameScreen from '@/app/GameScreen/GameScreen';
 const SERVER = process.env.NEXT_PUBLIC_SERVER;
-
 
 export default function GamePage() {
   const [games, setGames] = useState([]);
@@ -12,9 +13,14 @@ export default function GamePage() {
   const [playerName, setPlayerName] = useState('');
   const [gameName, setGameName] = useState('');
   const [gamePassword, setGamePassword] = useState('');
-  const [stage, setStage] = useState('name'); // 'name', 'games', 'create'
+  const [stage, setStage] = useState('name'); // 'name', 'games', 'create', 'match'
   const [modalMessage, setModalMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [gameID, setGameId] = useState(false);
+  const [gameOwner, setGameOwner] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedGame, setSelectedGame] = useState([]);
+  const [usePassword, setUsePassword] = useState(false);
 
   useEffect(() => {
     if (stage === 'games') {
@@ -46,9 +52,14 @@ export default function GamePage() {
     const data = {
       name: gameName,
       owner: playerName,
-      password: gamePassword,
     };
-
+    if (usePassword) {
+      if (!gamePassword.trim() || gamePassword.length < 2) {
+        showModalWithMessage('Error: no se pueden crear juegos con contraseñas vacías o demasiado cortas.');
+        return;
+      }
+      data.password = gamePassword;
+    }
     try {
       const response = await fetch(`${SERVER}api/games/`, {
         method: 'POST', // Método POST para crear partidas
@@ -56,19 +67,21 @@ export default function GamePage() {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify(data), // Convertir el cuerpo de la solicitud a JSON
+        body: JSON.stringify(data),
       });
       const dataResponse = await response.json();
 
-      if (response.status === 200) {
-        setGames([...games, dataResponse.data]); // Añadir nuevo juego creado a la lista
+      if (response.status === 200 || response.status === 403) {
+        const gameIdentification = dataResponse.data.id;
+        const gameOwner = dataResponse.data.owner;
+        setGameId(gameIdentification);
+        setGameOwner(gameOwner);
+        setUsePassword(dataResponse.data.password)
+        setSelectedGame(dataResponse.data)
         showModalWithMessage('El juego ha sido creado exitosamente.');
-      } else if (response.status === 400) {
-        showModalWithMessage('Error del cliente: ' + dataResponse.msg);
-      } else if (response.status === 403) {
-        showModalWithMessage('Error 403: No autorizado.');
-      } else if (response.status === 409) {
-        showModalWithMessage('Conflicto: ' + dataResponse.msg);
+        setStage('match')
+      } else if (response.status === 400 || response.status === 409) {
+        showModalWithMessage('Error: ' + dataResponse.msg);
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -78,26 +91,85 @@ export default function GamePage() {
       console.error('Error fetching games:', err);
     }
   };
-  const handleNameSubmit = (e) => {
+
+  const handleNameSubmit = (e: any) => {
     e.preventDefault();
     if (playerName.trim()) {
       setStage('games');
     }
   };
 
-  const showModalWithMessage = (message) => {
+  const showModalWithMessage = (message: string) => {
     setModalMessage(message);
     setShowModal(true);
   };
 
   const handleCloseModal = () => setShowModal(false);
 
-  const handleCreateGame = (e) => {
+  const handleCreateGame = (e: any) => {
     e.preventDefault();
     fetchCreateGames();
-    setGameName('');
-    setGamePassword('');
   };
+
+  const handleJoinGame = (game) => {
+   setSelectedGame(game)
+    if (game.password) {
+      setShowPasswordModal(true);
+    } else {
+      handlePasswordSubmit(game);
+    }
+  };
+
+  const handlePasswordSubmit = async (game) => {
+    const currentGame = game || selectedGame;
+    if (selectedGame && selectedGame.password && (gamePassword.trim() == '' || gamePassword.trim().length < 2)) {
+      showModalWithMessage('La contraseña no puede estar vacía, o no cumple con el estandard');
+      return;
+    }
+    const requestData = currentGame?.password ? { player: playerName, password: gamePassword } : { player: playerName };
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(selectedGame?.password && { 'password': gamePassword }),
+      ...(selectedGame && { 'player': playerName })
+    };
+
+    try {
+      const response = await fetch(`${SERVER}api/games/${currentGame.id}`, {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify(requestData),
+      });
+
+      const data = await response.json();
+      if (response.status === 200) {
+        setGameId(selectedGame.id);
+        setStage('match');
+        setShowPasswordModal(false);
+        setGamePassword(gamePassword);
+        setGameOwner(data.data.owner)
+        setUsePassword(data.data.password)
+        setSelectedGame(data.data)
+      } else if (response.status === 402 || response.status === 404 || response.status === 409 || response.status === 428 || response.status === 403) {
+        showModalWithMessage(data.msg);
+      } else if (response.status === 400) {
+        showModalWithMessage(data.msg);
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      setError(error.message);
+      console.error('Error al unirse al juego:', error);
+    }
+  };
+
+
+  const handleCheckboxChange = (event) => {
+    setUsePassword(event.target.checked);
+    if (!event.target.checked) {
+      setGamePassword('');
+    }
+  };
+
 
   const renderNameCard = () => (
     <Card className="text-center mt-5">
@@ -115,13 +187,16 @@ export default function GamePage() {
             />
           </Form.Group>
           <div className="d-grid gap-2">
-            <Button variant="primary" onClick={() => setStage('games')}>
+            <Button variant="primary" onClick={() => setStage('games')} disabled={playerName.trim().length < 4} >
               Buscar un Juego
             </Button>
-            <Button variant="secondary" onClick={() => alert("Buscar por Nombre aún no implementado")}>
+            <Button
+              variant="secondary"
+              onClick={() => alert("Buscar por Nombre aún no implementado")}
+              disabled={playerName.trim().length < 4}>
               Buscar por Nombre
             </Button>
-            <Button variant="success" onClick={() => setStage('create')}>
+            <Button variant="success" onClick={() => setStage('create')} disabled={playerName.trim().length < 4} >
               Crear un Juego
             </Button>
           </div>
@@ -145,16 +220,25 @@ export default function GamePage() {
               required
             />
           </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Password del Juego</Form.Label>
-            <Form.Control
-              type="password"
-              value={gamePassword}
-              onChange={(e) => setGamePassword(e.target.value)}
-              placeholder="Password"
-              required
+          <div className="text-start px-3 py-2">
+            <Form.Check
+              type="checkbox"
+              label="Poner contraseña al juego"
+              onChange={handleCheckboxChange}
             />
-          </Form.Group>
+          </div>
+          {usePassword && (
+            <Form.Group className="mb-3">
+              <Form.Label>Password del Juego</Form.Label>
+              <Form.Control
+                type="password"
+                value={gamePassword}
+                onChange={(e) => setGamePassword(e.target.value)}
+                placeholder="Password"
+                required
+              />
+            </Form.Group>
+          )}
           <Button variant="success" type="submit" className="mt-3">
             Crear Juego
           </Button>
@@ -172,9 +256,22 @@ export default function GamePage() {
       {error && <Alert variant="danger">{error}</Alert>}
       <ListGroup>
         {games.map((game) => (
-          <ListGroup.Item key={game.id} className="d-flex justify-content-between align-items-center">
-            {game.name}
-            <Button variant="primary" onClick={() => alert("Función jugar aún no implementada")}>
+          <ListGroup.Item
+            key={game.id}
+            className="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{game.name}</strong>
+              <span className="text-muted"> - Estado: {game.status}</span>
+              <span className="text-muted"> - Jugadores: {game.players.length}/10</span>
+              <span className="text-muted"> - Contraseña: {game.password ? 'Sí' : 'No'}</span>
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setSelectedGame(game);
+                handleJoinGame(game);
+              }}
+            >
               Jugar
             </Button>
           </ListGroup.Item>
@@ -188,22 +285,44 @@ export default function GamePage() {
 
   return (
     <Container>
-      {stage === 'name' && renderNameCard()}
-      {stage === 'create' && renderCreateGameForm()}
-      {stage === 'games' && renderGamesList()}
-
-      {/* Modal para mensajes de éxito o error */}
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Mensaje del Servidor</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>{modalMessage}</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <>
+        {stage === 'name' && renderNameCard()}
+        {stage === 'create' && renderCreateGameForm()}
+        {stage === 'games' && renderGamesList()}
+        {stage === 'match' && <GameScreen game={selectedGame} password={gamePassword} playerName={playerName} />}
+        <ModalComponent
+          showModal={showModal}
+          handleCloseModal={handleCloseModal}
+          modalMessage={modalMessage}
+        />
+        <Modal show={showPasswordModal} onHide={() => setShowPasswordModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Ingresar al Juego</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form onSubmit={(e) => { e.preventDefault(); handlePasswordSubmit(selectedGame); }}>
+              <Form.Group>
+                <Form.Label>Ingrese la contraseña del juego</Form.Label>
+                <Form.Control
+                  type="password"
+                  placeholder="Contraseña"
+                  value={gamePassword}
+                  onChange={(e) => setGamePassword(e.target.value)}
+                  required
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowPasswordModal(false)}>
+              Cancelar
+            </Button>
+            <Button variant="primary" onClick={(e) =>{handlePasswordSubmit(selectedGame)}}>
+              Unirse al Juego
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </>
     </Container>
   );
-}
+};
