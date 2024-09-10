@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Button, Form } from 'react-bootstrap';
 
-const NameCard = ({ playerName, setPlayerName, setStage }) => {
+const NameCard = ({ playerName, setPlayerName, setStage }:any) => {
   const handleNameSubmit = (e) => {
     e.preventDefault();
     if (playerName.trim()) {

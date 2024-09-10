@@ -15,7 +15,7 @@ const CreateGameForm = ({
     <Card className="text-center mt-5">
       <Card.Body>
         <Card.Title>Crear un Nuevo Juego</Card.Title>
-        <Form onSubmit={handleCreateGame}>
+        <Form onSubmit={(e) => handleCreateGame(e)}>
           <Form.Group className="mb-3">
             <Form.Label>Nombre del Juego</Form.Label>
             <Form.Control

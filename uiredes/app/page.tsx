@@ -53,7 +53,12 @@ export default function GamePage() {
     }
   };
 
-  const fetchCreateGames = async () => {
+  const fetchCreateGames = async (e) => {
+    e.preventDefault(); // Añadir esta línea
+    if (!gameName.trim() || !playerName.trim()) {
+      showModalWithMessage('Error: El nombre del juego y el nombre del jugador son requeridos.');
+      return;
+    }
     const data = {
       name: gameName,
       owner: playerName,
@@ -67,7 +72,7 @@ export default function GamePage() {
     }
     try {
       const response = await fetch(`${SERVER}api/games/`, {
-        method: 'POST', // Método POST para crear partidas
+        method: 'POST', 
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
@@ -98,13 +103,6 @@ export default function GamePage() {
   };
 
 
-  const handleNameSubmit = (e: any) => {
-    e.preventDefault();
-    if (playerName.trim()) {
-      setStage('games');
-    }
-  };
-
   const showModalWithMessage = (message: string) => {
     setModalMessage(message);
     setShowModal(true);
@@ -113,6 +111,10 @@ export default function GamePage() {
   const handleCloseModal = () => setShowModal(false);
 
   const handleJoinGame = (game) => {
+    if (game.players.length >= 10) {
+      showModalWithMessage('Este juego ya tiene el máximo de 10 jugadores.');
+      return;
+    }
     setSelectedGame(game);
     if (game.password) {
       setShowPasswordModal(true);
@@ -123,6 +125,10 @@ export default function GamePage() {
 
   const handlePasswordSubmit = async (game) => {
     const currentGame = game || selectedGame;
+    if (currentGame.players.length >= 10) {
+      showModalWithMessage('Este juego ya tiene el máximo de 10 jugadores.');
+      return;
+    }
     if (selectedGame && selectedGame.password && (gamePassword.trim() == '' || gamePassword.trim().length < 2)) {
       showModalWithMessage('La contraseña no puede estar vacía, o no cumple con el estandard');
       return;
@@ -143,6 +149,10 @@ export default function GamePage() {
 
       const data = await response.json();
       if (response.status === 200) {
+        if (data.data.players.length > 10) {
+          showModalWithMessage('Lo sentimos, el juego ya está lleno (10 jugadores máximo).');
+          return;
+        }
         setGameId(selectedGame.id);
         setStage('match');
         setShowPasswordModal(false);
@@ -212,7 +222,6 @@ export default function GamePage() {
         handleCloseModal={handleCloseModal}
         modalMessage={modalMessage}
       />
-      {/* Modal para contraseña */}
       <PasswordModal 
         show={showPasswordModal} 
         onHide={() => setShowPasswordModal(false)} 

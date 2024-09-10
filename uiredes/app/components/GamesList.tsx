@@ -1,13 +1,13 @@
 import React from 'react';
 import { Container, ListGroup, Button, Alert } from 'react-bootstrap';
 
-const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame }) => {
+const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame }: any) => {
   return (
     <Container className="mt-5">
       <h2 className="text-center">Juegos Disponibles</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <ListGroup>
-        {games.map((game) => (
+        {games.map((game: any) => (
           <ListGroup.Item
             key={game.id}
             className="d-flex justify-content-between align-items-center"
@@ -25,7 +25,7 @@ const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame }) 
                 handleJoinGame(game);
               }}
             >
-              Jugar
+              {game.players.length >= 10 ? 'Lleno' : 'Jugar'}
             </Button>
           </ListGroup.Item>
         ))}
