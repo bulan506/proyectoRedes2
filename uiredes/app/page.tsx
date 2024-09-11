@@ -180,6 +180,16 @@ export default function GamePage() {
     }
   };
 
+  const handleExitGame = () => {
+    // Resetea todos los estados relacionados con el juego
+    setStage('games'); // Cambiar a la lista de juegos
+    setSelectedGame([]); // Limpiar el juego seleccionado
+    setGameId(false); // Reiniciar el ID del juego
+    setGamePassword(''); // Limpiar la contraseña del juego
+    setGameOwner(''); // Limpiar el dueño del juego
+    setUsePassword(false); // Reiniciar el uso de contraseñas
+  };
+
   return (
     <Container>
       {stage === 'name' && (
@@ -215,6 +225,7 @@ export default function GamePage() {
           game={selectedGame}
           password={gamePassword}
           playerName={playerName}
+          onExit={handleExitGame} // Pasar la función handleExitGame aquí
         />
       )}
       <ModalComponent

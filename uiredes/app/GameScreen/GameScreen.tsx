@@ -6,7 +6,7 @@ import "@/app/styles/GameInterface.css";
 import ModalComponent from '@/app/components/ModalComponet';
 const SERVER = process.env.NEXT_PUBLIC_SERVER;
 
-const GameScreen = ({ game, password, playerName }: any) => {
+const GameScreen = ({ game, password, playerName, onExit }: any) => {
   const [playerStatus, setPlayerStatus] = useState('');
   const [error, setError] = useState('');
   const [players, setPlayers] = useState(game.players || []);
@@ -106,7 +106,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
 
   return (
     <div>
-      <h1>Pantalla del Juego: {game.id}</h1>
+      <h1>Game ID: {game.id}</h1>
       <h1>NOMBRE DEL JUGADOR: {playerName}</h1>
       <h1>Password: {password}</h1>
 
@@ -140,7 +140,9 @@ const GameScreen = ({ game, password, playerName }: any) => {
             <button onClick={toggleStatus}>Cambiar Estado</button>
             {isOwner() && (
               <button onClick={startGame}>Iniciar Juego</button>
-            )}          </div>
+            )}        
+            <button variant="outline-secondary" className="exit-button" onClick={onExit}>Salir del Juego</button> {/* Botón para salir */}
+          </div>
         </div>
 
         <ModalComponent
