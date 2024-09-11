@@ -67,13 +67,16 @@ const GameScreen = ({ game, password, playerName }: any) => {
 
   // Función para iniciar el juego
   const startGame = async () => {
+    const data={
+      player:game.owner
+    };
+    if (game.password) {
+      data.password = password;
+    }
     try {
       const response = await fetch(`${SERVER}api/games/${game.id}/start`, {
         method: 'HEAD',
-        headers: {
-          'password': password,
-          'player': playerName,
-        },
+        headers: data,
       });
 
       // Obtener el valor del encabezado "X-msg" si existe
