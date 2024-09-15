@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css"; // Import bootstrap CSS
 import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-bootstrap';
 import "@/app/styles/GameInterface.css";
+import "@/app/styles/VoteButtons.css";
 import ModalComponent from '@/app/components/ModalComponet';
 const SERVER = process.env.NEXT_PUBLIC_SERVER;
 
@@ -16,6 +17,8 @@ const GameScreen = ({ game, password, playerName }: any) => {
   const [currentRound, setCurrentRound] = useState('');
   const [enemies, setEnemies] = useState([]);
   const [leader, setLeader] = useState('');
+  const [proposedGroup, setProposedGroup] = useState([]);
+  const [vote, setVote] = useState(null);
 
   const fetchGameState = async () => {
     const headers: any = {
@@ -59,6 +62,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
       const data = await response.json();
       if (response.ok) {
         setLeader(data.data.leader);
+        setProposedGroup(data.data.group);
       } else {
         showModalWithMessage(`Error al obtener la ronda: ${response.status}`);
       }
@@ -99,6 +103,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
       const errorMsg = response.headers.get('X-msg');
       if (response.ok) {
         showModalWithMessage('Grupo enviado exitosamente.');
+        await fetchRoundInfo();
       } else {
         const statusMessages: any = {
           401: `Credenciales inválidas: ${errorMsg || 'Sin mensaje'}`,
@@ -121,6 +126,16 @@ const GameScreen = ({ game, password, playerName }: any) => {
     }
     return () => clearInterval(intervalId);
   }, [gameStatus]);
+
+
+  useEffect(() => {
+    let intervalId;
+    if (gameStatus === 'rounds') {
+      intervalId = setInterval(fetchRoundInfo, 3000);
+    }
+    return () => clearInterval(intervalId);
+  }, [gameStatus]);
+
 
   const isOwner = () => playerName.toLowerCase() === game.owner.toLowerCase();
   const isEnemy = (player) => enemies.includes(player);
@@ -156,6 +171,46 @@ const GameScreen = ({ game, password, playerName }: any) => {
       setError(`Error al iniciar el juego: ${error.message}`);
       console.error('Error al iniciar el juego:', error);
     }
+  };
+
+  const submitVote = async (voteValue) => {
+    const headers: any = {
+      'player': playerName,
+      'Content-Type': 'application/json',
+    };
+    if (game.password) {
+      headers.password = password;
+    }
+
+    const body = JSON.stringify({ vote: voteValue });
+
+    try {
+      const response = await fetch(`${SERVER}api/games/${game.id}/rounds/${currentRound}`, {
+        method: 'POST',
+        headers,
+        body,
+      });
+
+      const errorMsg = response.headers.get('X-msg');
+      if (response.ok) {
+        setVote(voteValue);
+        showModalWithMessage('Voto registrado exitosamente.');
+      }else{
+        const statusMessages: any = {
+        401: `No autorizado: ${errorMsg || 'Sin mensaje'}`,
+        403: 'Acceso prohibido: usted no es parte del juego',
+        404: `Juego no encontrado: ${errorMsg || 'Sin mensaje'}`,
+        409: `Usted ya ha votado: ${errorMsg || 'Sin mensaje'}`,
+        428: `No se puede realizar esta acción en este momento: ${errorMsg || 'Sin mensaje'}`,
+        };
+        showModalWithMessage(statusMessages[response.status] || `Error desconocido: ${response.status}`);
+      }
+
+    } catch (error) {
+      setError(`Error al enviar el voto: ${error.message}`);
+      console.error('Error al enviar el voto:', error);
+    }
+    
   };
 
   const showModalWithMessage = (message: string) => {
@@ -207,6 +262,34 @@ const GameScreen = ({ game, password, playerName }: any) => {
             </>
           )}
 
+          {proposedGroup.length > 0 && (
+            <div className="proposed-group-info">
+              <h2>Grupo Propuesto:</h2>
+              <ul>
+                {proposedGroup.map((player, index) => (
+                  <li key={index}>{player}</li>
+                ))}
+              </ul>
+              <div className="voting-buttons">
+                <button 
+                  onClick={() => submitVote('true')} 
+                  disabled={vote !== null}
+                  className={`vote-button ${vote === 'up' ? 'voted' : ''}`}
+                  aria-label="Votar a favor"
+                >
+                  &#128077; {/* Thumbs up emoji */}
+                </button>
+                <button 
+                  onClick={() => submitVote('false')} 
+                  disabled={vote !== null}
+                  className={`vote-button ${vote === 'down' ? 'voted' : ''}`}
+                  aria-label="Votar en contra"
+                >
+                  &#128078; {/* Thumbs down emoji */}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="actions">
             {isOwner() && gameStatus === 'lobby' && (
