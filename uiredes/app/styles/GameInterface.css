@@ -92,4 +92,19 @@
     flex-wrap: wrap; /* Permitir múltiples filas si es necesario */
     gap: 10px; /* Espacio entre los círculos */
   }
+
+  .enemy-marker {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .leader-marker {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .player-button.enemy {
+    background-color: red;
+    color: white;
+  }
   
