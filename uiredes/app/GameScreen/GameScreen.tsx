@@ -19,6 +19,8 @@ const GameScreen = ({ game, password, playerName }: any) => {
   const [leader, setLeader] = useState('');
   const [proposedGroup, setProposedGroup] = useState([]);
   const [vote, setVote] = useState(null);
+  const [roundStatus, setRoundStatus] = useState('');
+
 
   const fetchGameState = async () => {
     const headers: any = {
@@ -63,6 +65,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
       if (response.ok) {
         setLeader(data.data.leader);
         setProposedGroup(data.data.group);
+        setRoundStatus(data.data.status)
       } else {
         showModalWithMessage(`Error al obtener la ronda: ${response.status}`);
       }
@@ -83,6 +86,11 @@ const GameScreen = ({ game, password, playerName }: any) => {
 
 
   const submitGroup = async () => {
+  if (selectedGroup.length === 0) {
+    showModalWithMessage('No puedes enviar un grupo vacío.');
+    return;
+  }
+
     const headers: any = {
       'player': playerName,
       'Content-Type': 'application/json',
@@ -101,6 +109,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
       });
 
       const errorMsg = response.headers.get('X-msg');
+      const dataError = await response.json();
       if (response.ok) {
         showModalWithMessage('Grupo enviado exitosamente.');
         await fetchRoundInfo();
@@ -109,6 +118,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
           401: `Credenciales inválidas: ${errorMsg || 'Sin mensaje'}`,
           403: 'Acceso prohibido: solo el líder puede enviar el grupo',
           404: `Ronda no encontrada: ${errorMsg || 'Sin mensaje'}`,
+          428: `Grupo no permitido: ${dataError.msg || 'Sin mensaje'}`,
         };
         showModalWithMessage(statusMessages[response.status] || `Error desconocido: ${response.status}`);
       }
@@ -181,9 +191,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
     if (game.password) {
       headers.password = password;
     }
-
     const body = JSON.stringify({ vote: voteValue });
-
     try {
       const response = await fetch(`${SERVER}api/games/${game.id}/rounds/${currentRound}`, {
         method: 'POST',
@@ -261,7 +269,6 @@ const GameScreen = ({ game, password, playerName }: any) => {
               </div>
             </>
           )}
-
           {proposedGroup.length > 0 && (
             <div className="proposed-group-info">
               <h2>Grupo Propuesto:</h2>
@@ -273,7 +280,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
               <div className="voting-buttons">
                 <button 
                   onClick={() => submitVote('true')} 
-                  disabled={vote !== null}
+                  disabled={vote !== null || roundStatus !== 'voting'} 
                   className={`vote-button ${vote === 'up' ? 'voted' : ''}`}
                   aria-label="Votar a favor"
                 >
@@ -281,7 +288,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
                 </button>
                 <button 
                   onClick={() => submitVote('false')} 
-                  disabled={vote !== null}
+                  disabled={vote !== null || roundStatus !== 'voting'}  
                   className={`vote-button ${vote === 'down' ? 'voted' : ''}`}
                   aria-label="Votar en contra"
                 >
