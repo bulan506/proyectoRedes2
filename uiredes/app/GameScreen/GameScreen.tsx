@@ -1,5 +1,4 @@
-"use client";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import bootstrap CSS
+import "bootstrap/dist/css/bootstrap.min.css";
 import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-bootstrap';
 import "@/app/styles/GameInterface.css";
@@ -20,7 +19,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
   const [proposedGroup, setProposedGroup] = useState([]);
   const [vote, setVote] = useState(null);
   const [roundStatus, setRoundStatus] = useState('');
-
+  const [allVoted, setAllVoted] = useState(false); // Nuevo estado
 
   const fetchGameState = async () => {
     const headers: any = {
@@ -65,13 +64,19 @@ const GameScreen = ({ game, password, playerName }: any) => {
       if (response.ok) {
         setLeader(data.data.leader);
         setProposedGroup(data.data.group);
-        setRoundStatus(data.data.status)
+        setRoundStatus(data.data.status);
+        checkAllPlayersVoted(data.data.votes);
       } else {
         showModalWithMessage(`Error al obtener la ronda: ${response.status}`);
       }
     } catch (error) {
       throw new Error(`Error en la solicitud GET de ronda: ${error.message}`);
     }
+  };
+
+  const checkAllPlayersVoted = (votes) => {
+    const hasAllVoted = players.length === votes.length;
+    setAllVoted(hasAllVoted);
   };
 
   const selectGroup = (player) => {
@@ -84,12 +89,11 @@ const GameScreen = ({ game, password, playerName }: any) => {
     });
   };
 
-
   const submitGroup = async () => {
-  if (selectedGroup.length === 0) {
-    showModalWithMessage('No puedes enviar un grupo vacío.');
-    return;
-  }
+    if (selectedGroup.length === 0) {
+      showModalWithMessage('No puedes enviar un grupo vacío.');
+      return;
+    }
 
     const headers: any = {
       'player': playerName,
@@ -128,6 +132,78 @@ const GameScreen = ({ game, password, playerName }: any) => {
     }
   };
 
+  const submitVote = async (voteValue) => {
+    const headers: any = {
+      'player': playerName,
+      'Content-Type': 'application/json',
+    };
+    if (game.password) {
+      headers.password = password;
+    }
+    const body = JSON.stringify({ vote: voteValue });
+    try {
+      const response = await fetch(`${SERVER}api/games/${game.id}/rounds/${currentRound}`, {
+        method: 'POST',
+        headers,
+        body,
+      });
+
+      const errorMsg = response.headers.get('X-msg');
+      if (response.ok) {
+        setVote(voteValue);
+        showModalWithMessage('Voto registrado exitosamente.');
+      } else {
+        const statusMessages: any = {
+          401: `No autorizado: ${errorMsg || 'Sin mensaje'}`,
+          403: 'Acceso prohibido: usted no es parte del juego',
+          404: `Juego no encontrado: ${errorMsg || 'Sin mensaje'}`,
+          409: `Usted ya ha votado: ${errorMsg || 'Sin mensaje'}`,
+          428: `No se puede realizar esta acción en este momento: ${errorMsg || 'Sin mensaje'}`,
+        };
+        showModalWithMessage(statusMessages[response.status] || `Error desconocido: ${response.status}`);
+      }
+    } catch (error) {
+      setError(`Error al enviar el voto: ${error.message}`);
+      console.error('Error al enviar el voto:', error);
+    }
+  };
+
+  const submitAction = async (actionValue) => {
+    const headers: any = {
+      'player': playerName,
+      'Content-Type': 'application/json',
+    };
+    if (game.password) {
+      headers.password = password;
+    }
+    const body = JSON.stringify({ action: actionValue });
+    try {
+      const response = await fetch(`${SERVER}api/games/${game.id}/rounds/${currentRound}`, {
+        method: 'PUT',
+        headers,
+        body,
+      });
+
+      const errorMsg = response.headers.get('X-msg');
+      if (response.ok) {
+        showModalWithMessage('Acción registrada exitosamente.');
+        fetchRoundInfo(); // Refrescar la información de la ronda
+      } else {
+        const statusMessages: any = {
+          401: `No autorizado: ${errorMsg || 'Sin mensaje'}`,
+          403: 'Acceso prohibido: no eres parte del juego',
+          404: `Recurso no encontrado: ${errorMsg || 'Sin mensaje'}`,
+          409: `Conflicto: ${errorMsg || 'Sin mensaje'}`,
+          428: `Acción no permitida: ${errorMsg || 'Sin mensaje'}`,
+        };
+        showModalWithMessage(statusMessages[response.status] || `Error desconocido: ${response.status}`);
+      }
+    } catch (error) {
+      setError(`Error al enviar la acción: ${error.message}`);
+      console.error('Error al enviar la acción:', error);
+    }
+  };
+
   useEffect(() => {
     const intervalId = setInterval(fetchGameState, 3000);
     if (gameStatus === 'rounds') {
@@ -137,7 +213,6 @@ const GameScreen = ({ game, password, playerName }: any) => {
     return () => clearInterval(intervalId);
   }, [gameStatus]);
 
-
   useEffect(() => {
     let intervalId;
     if (gameStatus === 'rounds') {
@@ -145,7 +220,6 @@ const GameScreen = ({ game, password, playerName }: any) => {
     }
     return () => clearInterval(intervalId);
   }, [gameStatus]);
-
 
   const isOwner = () => playerName.toLowerCase() === game.owner.toLowerCase();
   const isEnemy = (player) => enemies.includes(player);
@@ -183,44 +257,6 @@ const GameScreen = ({ game, password, playerName }: any) => {
     }
   };
 
-  const submitVote = async (voteValue) => {
-    const headers: any = {
-      'player': playerName,
-      'Content-Type': 'application/json',
-    };
-    if (game.password) {
-      headers.password = password;
-    }
-    const body = JSON.stringify({ vote: voteValue });
-    try {
-      const response = await fetch(`${SERVER}api/games/${game.id}/rounds/${currentRound}`, {
-        method: 'POST',
-        headers,
-        body,
-      });
-
-      const errorMsg = response.headers.get('X-msg');
-      if (response.ok) {
-        setVote(voteValue);
-        showModalWithMessage('Voto registrado exitosamente.');
-      }else{
-        const statusMessages: any = {
-        401: `No autorizado: ${errorMsg || 'Sin mensaje'}`,
-        403: 'Acceso prohibido: usted no es parte del juego',
-        404: `Juego no encontrado: ${errorMsg || 'Sin mensaje'}`,
-        409: `Usted ya ha votado: ${errorMsg || 'Sin mensaje'}`,
-        428: `No se puede realizar esta acción en este momento: ${errorMsg || 'Sin mensaje'}`,
-        };
-        showModalWithMessage(statusMessages[response.status] || `Error desconocido: ${response.status}`);
-      }
-
-    } catch (error) {
-      setError(`Error al enviar el voto: ${error.message}`);
-      console.error('Error al enviar el voto:', error);
-    }
-    
-  };
-
   const showModalWithMessage = (message: string) => {
     setModalMessage(message);
     setShowModal(true);
@@ -246,18 +282,18 @@ const GameScreen = ({ game, password, playerName }: any) => {
           <div className="players-div">
             {players.map((player, index) => (
               <button
-              key={index}
-              className={`player-button 
-                ${selectedGroup.includes(player) ? 'selected' : ''}
-                ${isEnemy(playerName) && isEnemy(player) ? 'enemy' : ''}
-              `}
+                key={index}
+                className={`player-button 
+                  ${selectedGroup.includes(player) ? 'selected' : ''}
+                  ${isEnemy(playerName) && isEnemy(player) ? 'enemy' : ''}
+                `}
                 onClick={() => imLeader() && selectGroup(player)}
               >
                 <p>{player}</p>
               </button>
             ))}
           </div>
-          {imLeader() &&  (
+          {imLeader() && (
             <>
               <div className="selected-group-info">
                 <h2>Grupo Seleccionado:</h2>
@@ -281,7 +317,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
                 <button 
                   onClick={() => submitVote('true')} 
                   disabled={vote !== null || roundStatus !== 'voting'} 
-                  className={`vote-button ${vote === 'up' ? 'voted' : ''}`}
+                  className={`vote-button ${vote === 'true' ? 'voted' : ''}`}
                   aria-label="Votar a favor"
                 >
                   &#128077; {/* Thumbs up emoji */}
@@ -289,12 +325,28 @@ const GameScreen = ({ game, password, playerName }: any) => {
                 <button 
                   onClick={() => submitVote('false')} 
                   disabled={vote !== null || roundStatus !== 'voting'}  
-                  className={`vote-button ${vote === 'down' ? 'voted' : ''}`}
+                  className={`vote-button ${vote === 'false' ? 'voted' : ''}`}
                   aria-label="Votar en contra"
                 >
                   &#128078; {/* Thumbs down emoji */}
                 </button>
               </div>
+              {allVoted && (
+                <div className="action-buttons">
+                  <button 
+                    onClick={() => submitAction(true)} 
+                    className="action-button"
+                  >
+                    Colaborar
+                  </button>
+                  <button 
+                    onClick={() => submitAction(false)} 
+                    className="action-button"
+                  >
+                    Sabotear
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
