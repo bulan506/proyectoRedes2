@@ -39,7 +39,9 @@ const GameScreen = ({ game, password, playerName }: any) => {
         setGameStatus(data.data.status);
         setCurrentRound(data.data.currentRound);
         setEnemies(data.data.enemies);
-        if (gameStatus === 'rounds') { fetchRoundInfo() }
+        if (gameStatus === 'ended') { }
+        // lista de los rounds y cuente cuantas veces aparacen los psicopatas o los ciudadanos y mostrarlo en pantalla
+        //if (gameStatus === 'rounds') { fetchRoundInfo() }
       } else {
         showModalWithMessage(`Error: ${response.status}`);
       }
@@ -47,6 +49,47 @@ const GameScreen = ({ game, password, playerName }: any) => {
       throw new Error(`Error en la solicitud GET: ${error.message}`);
     }
   };
+
+
+  const countWinner = async () => {
+    const headers: any = {
+      'player': playerName,
+    };
+    if (game.password) {
+      headers.password = password;
+    }
+    try {
+      const response = await fetch(`${SERVER}api/games/${game.id}/rounds/`, {
+        method: 'GET',
+        headers,
+      });
+      const data = await response.json();
+      if (response.ok) {
+        const rounds = data.data; // Las rondas obtenidas del servidor
+        let citizenWins = 0;
+        let enemyWins = 0;
+        rounds.forEach((round: any) => {
+          if (round.status === "ended") {
+            if (round.result === "citizens") {
+              citizenWins++;
+            } else if (round.result === "enemies") {
+              enemyWins++;
+            }
+          }
+        });
+        if (citizenWins >= 3) {
+          showModalWithMessage("¡Los Citizens ganaron el juego!");
+        } else if (enemyWins >= 3) {
+          showModalWithMessage("¡Los Enemies ganaron el juego!");
+        }
+      } else {
+        showModalWithMessage(`Error al obtener las rondas: ${response.status}`);
+      }
+    } catch (error) {
+      throw new Error(`Error en la solicitud GET de ronda: ${error.message}`);
+    }
+  };
+
 
   const fetchRoundInfo = async () => {
     const headers: any = {
@@ -66,6 +109,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
         setProposedGroup(data.data.group);
         setRoundStatus(data.data.status);
         checkAllPlayersVoted(data.data.votes);
+        if (data.data.status === 'ended') { fetchGameState() }
       } else {
         showModalWithMessage(`Error al obtener la ronda: ${response.status}`);
       }
@@ -205,25 +249,31 @@ const GameScreen = ({ game, password, playerName }: any) => {
   };
 
   useEffect(() => {
-    const intervalId = setInterval(fetchGameState, 3000);
-    if (gameStatus === 'rounds') {
-      clearInterval(intervalId); // Detener el polling cuando el estado sea 'rounds'
-      fetchGameState();
+    if (gameStatus !== 'ended') {
+      const intervalId = setInterval(fetchGameState, 3000);
+      return () => clearInterval(intervalId);
     }
-    return () => clearInterval(intervalId);
   }, [gameStatus]);
 
   useEffect(() => {
-    let intervalId;
     if (gameStatus === 'rounds') {
-      intervalId = setInterval(fetchRoundInfo, 3000);
+      const intervalId = setInterval(fetchRoundInfo, 3000);
+      return () => clearInterval(intervalId);
     }
-    return () => clearInterval(intervalId);
+  }, [gameStatus, currentRound]);
+
+  useEffect(() => {
+    if (gameStatus === 'ended') {
+      countWinner();
+    }
   }, [gameStatus]);
+
 
   const isOwner = () => playerName.toLowerCase() === game.owner.toLowerCase();
   const isEnemy = (player) => enemies.includes(player);
   const imLeader = () => playerName === leader;
+  const imPartOfGroup = (player) => proposedGroup.includes(player);
+
 
   const startGame = async () => {
     const data = {
@@ -305,7 +355,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
               </div>
             </>
           )}
-          {proposedGroup.length > 0 && (
+          {proposedGroup.length > 0 && roundStatus === 'voting' && (
             <div className="proposed-group-info">
               <h2>Grupo Propuesto:</h2>
               <ul>
@@ -314,38 +364,41 @@ const GameScreen = ({ game, password, playerName }: any) => {
                 ))}
               </ul>
               <div className="voting-buttons">
-                <button 
-                  onClick={() => submitVote('true')} 
-                  disabled={vote !== null || roundStatus !== 'voting'} 
+                <button
+                  onClick={() => submitVote('true')}
+                  disabled={vote !== null}
                   className={`vote-button ${vote === 'true' ? 'voted' : ''}`}
                   aria-label="Votar a favor"
                 >
                   &#128077; {/* Thumbs up emoji */}
                 </button>
-                <button 
-                  onClick={() => submitVote('false')} 
-                  disabled={vote !== null || roundStatus !== 'voting'}  
+                <button
+                  onClick={() => submitVote('false')}
+                  disabled={vote !== null}
                   className={`vote-button ${vote === 'false' ? 'voted' : ''}`}
                   aria-label="Votar en contra"
                 >
                   &#128078; {/* Thumbs down emoji */}
                 </button>
               </div>
-              {allVoted && (
-                <div className="action-buttons">
-                  <button 
-                    onClick={() => submitAction(true)} 
-                    className="action-button"
-                  >
-                    Colaborar
-                  </button>
-                  <button 
-                    onClick={() => submitAction(false)} 
-                    className="action-button"
-                  >
-                    Sabotear
-                  </button>
-                </div>
+
+            </div>
+          )}
+          {allVoted && roundStatus === 'waiting-on-group' && imPartOfGroup(playerName) && (
+            <div className="action-buttons">
+              <button
+                onClick={() => submitAction(true)}
+                className="action-button"
+              >
+                Colaborar
+              </button>
+              {isEnemy(playerName) && (
+                <button
+                  onClick={() => submitAction(false)}
+                  className="action-button"
+                >
+                  Sabotear
+                </button>
               )}
             </div>
           )}

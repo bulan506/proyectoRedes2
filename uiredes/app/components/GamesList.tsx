@@ -6,6 +6,9 @@ const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame }: 
     <Container className="mt-5">
       <h2 className="text-center">Juegos Disponibles</h2>
       {error && <Alert variant="danger">{error}</Alert>}
+      <Button variant="secondary" onClick={() => setStage('name')} className="mt-3">
+        Volver
+      </Button>
       <ListGroup>
         {games.map((game: any) => (
           <ListGroup.Item
