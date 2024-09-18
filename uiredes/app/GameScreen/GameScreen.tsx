@@ -105,6 +105,9 @@ const GameScreen = ({ game, password, playerName }: any) => {
       });
       const data = await response.json();
       if (response.ok) {
+        if(data.data.status === 'voting' && data.data.votes.length === 0){
+          setVote(null);
+        }
         setLeader(data.data.leader);
         setProposedGroup(data.data.group);
         setRoundStatus(data.data.status);
@@ -343,7 +346,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
               </button>
             ))}
           </div>
-          {imLeader() && (
+          {imLeader() && roundStatus === 'waiting-on-leader' && (
             <>
               <div className="selected-group-info">
                 <h2>Grupo Seleccionado:</h2>
