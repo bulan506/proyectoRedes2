@@ -26,16 +26,19 @@ export default function GamePage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedGame, setSelectedGame] = useState([]);
   const [usePassword, setUsePassword] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [gamesPerPage] = useState(200);
 
   useEffect(() => {
     if (stage === 'games') {
       fetchGames();
     }
-  }, [stage]);
+  }, [stage, currentPage]);
 
   const fetchGames = async () => {
     try {
-      const response = await fetch(`${SERVER}api/games/`, {
+      const response = await fetch(`${SERVER}api/games?page=${currentPage}&limit=${gamesPerPage}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -47,6 +50,7 @@ export default function GamePage() {
       }
       const data = await response.json();
       setGames(data.data);
+      setTotalPages(10);
     } catch (err) {
       setError(err.message);
       console.error('Error fetching games:', err);
@@ -109,6 +113,10 @@ export default function GamePage() {
   };
 
   const handleCloseModal = () => setShowModal(false);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleJoinGame = (game) => {
     if (game.players.length >= 10) {
@@ -208,8 +216,12 @@ export default function GamePage() {
           handleJoinGame={handleJoinGame}
           setStage={setStage}
           setSelectedGame={setSelectedGame}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          handlePageChange={handlePageChange}
         />
       )}
+      
       {stage === 'match' && (
         <GameScreen
           game={selectedGame}

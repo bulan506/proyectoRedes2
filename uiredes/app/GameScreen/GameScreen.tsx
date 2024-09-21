@@ -40,8 +40,6 @@ const GameScreen = ({ game, password, playerName }: any) => {
         setCurrentRound(data.data.currentRound);
         setEnemies(data.data.enemies);
         if (gameStatus === 'ended') { }
-        // lista de los rounds y cuente cuantas veces aparacen los psicopatas o los ciudadanos y mostrarlo en pantalla
-        //if (gameStatus === 'rounds') { fetchRoundInfo() }
       } else {
         showModalWithMessage(`Error: ${response.status}`);
       }
@@ -49,7 +47,6 @@ const GameScreen = ({ game, password, playerName }: any) => {
       throw new Error(`Error en la solicitud GET: ${error.message}`);
     }
   };
-
 
   const countWinner = async () => {
     const headers: any = {
@@ -65,7 +62,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
       });
       const data = await response.json();
       if (response.ok) {
-        const rounds = data.data; // Las rondas obtenidas del servidor
+        const rounds = data.data; 
         let citizenWins = 0;
         let enemyWins = 0;
         rounds.forEach((round: any) => {
@@ -78,9 +75,9 @@ const GameScreen = ({ game, password, playerName }: any) => {
           }
         });
         if (citizenWins >= 3) {
-          showModalWithMessage("¡Los Citizens ganaron el juego!");
+          showModalWithMessage("¡Los ciudadanos ganaron el juego!");
         } else if (enemyWins >= 3) {
-          showModalWithMessage("¡Los Enemies ganaron el juego!");
+          showModalWithMessage("¡Los enemigos ganaron el juego!");
         }
       } else {
         showModalWithMessage(`Error al obtener las rondas: ${response.status}`);
@@ -107,6 +104,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
       if (response.ok) {
         if(data.data.status === 'voting' && data.data.votes.length === 0){
           setVote(null);
+          setAllVoted(false)
         }
         setLeader(data.data.leader);
         setProposedGroup(data.data.group);
