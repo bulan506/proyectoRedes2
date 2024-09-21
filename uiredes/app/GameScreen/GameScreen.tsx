@@ -327,11 +327,11 @@ const GameScreen = ({ game, password, playerName }: any) => {
 
   return (
     <div>
-      {/*
-      <h1>Pantalla del Juego: {game.id}</h1>
-      <h1>NOMBRE DEL JUGADOR: {playerName}</h1>
-      <h1>Password: {password}</h1>
-      */}
+      <h1>Nombre del Juego: {game.name}</h1>
+      {leader && (<h1>El lider es: {leader}</h1>)}
+      {roundStatus && (<h1>El estado de la partida es: {roundStatus}</h1>)}
+
+
       <>
         {error && <Alert variant="danger">{error}</Alert>}
         <div className="game-interface">
