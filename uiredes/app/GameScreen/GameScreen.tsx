@@ -20,6 +20,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
   const [vote, setVote] = useState(null);
   const [roundStatus, setRoundStatus] = useState('');
   const [allVoted, setAllVoted] = useState(false); // Nuevo estado
+  const [action, setAction] = useState(null);
 
   const fetchGameState = async () => {
     const headers: any = {
@@ -110,7 +111,15 @@ const GameScreen = ({ game, password, playerName }: any) => {
         setProposedGroup(data.data.group);
         setRoundStatus(data.data.status);
         checkAllPlayersVoted(data.data.votes);
-        if (data.data.status === 'ended') { fetchGameState() }
+        if (data.data.status === 'ended') { 
+          fetchGameState();
+          if(data.data.result === 'citizens'){
+            showModalWithMessage('¡Los ciudadanos ganaron la ronda!');
+          }else if(data.data.result === 'enemies'){
+            showModalWithMessage('¡Los enemigos ganaron la ronda!');
+          }
+        }
+        if(data.data.status === 'waiting-on-leader'){setAction(null);}
       } else {
         showModalWithMessage(`Error al obtener la ronda: ${response.status}`);
       }
@@ -196,7 +205,6 @@ const GameScreen = ({ game, password, playerName }: any) => {
       const errorMsg = response.headers.get('X-msg');
       if (response.ok) {
         setVote(voteValue);
-        showModalWithMessage('Voto registrado exitosamente.');
       } else {
         const statusMessages: any = {
           401: `No autorizado: ${errorMsg || 'Sin mensaje'}`,
@@ -231,7 +239,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
 
       const errorMsg = response.headers.get('X-msg');
       if (response.ok) {
-        showModalWithMessage('Acción registrada exitosamente.');
+        setAction(actionValue);
         fetchRoundInfo(); // Refrescar la información de la ronda
       } else {
         const statusMessages: any = {
@@ -319,9 +327,11 @@ const GameScreen = ({ game, password, playerName }: any) => {
 
   return (
     <div>
+      {/*
       <h1>Pantalla del Juego: {game.id}</h1>
       <h1>NOMBRE DEL JUGADOR: {playerName}</h1>
       <h1>Password: {password}</h1>
+      */}
       <>
         {error && <Alert variant="danger">{error}</Alert>}
         <div className="game-interface">
@@ -386,9 +396,10 @@ const GameScreen = ({ game, password, playerName }: any) => {
             </div>
           )}
           {allVoted && roundStatus === 'waiting-on-group' && imPartOfGroup(playerName) && (
-            <div className="action-buttons">
+            <div className="actions">
               <button
                 onClick={() => submitAction(true)}
+                disabled={action !== null}
                 className="action-button"
               >
                 Colaborar
@@ -396,7 +407,8 @@ const GameScreen = ({ game, password, playerName }: any) => {
               {isEnemy(playerName) && (
                 <button
                   onClick={() => submitAction(false)}
-                  className="action-button"
+                  disabled={action !== null}
+                  className="actions-button"
                 >
                   Sabotear
                 </button>
@@ -406,11 +418,11 @@ const GameScreen = ({ game, password, playerName }: any) => {
 
           <div className="actions">
             {isOwner() && gameStatus === 'lobby' && (
-              <button onClick={startGame}>Iniciar Juego</button>
+              <button style={{marginTop: '10%'}} onClick={startGame}>Iniciar Juego</button>
             )}
-            {imLeader() && gameStatus === 'rounds' && (
+            {imLeader() && gameStatus === 'rounds' && roundStatus === 'waiting-on-leader' &&(
               <>
-                <button onClick={submitGroup}>Enviar Grupo</button>
+                <button style={{marginTop: '10%'}} onClick={submitGroup}>Enviar Grupo</button>
               </>
             )}
           </div>
