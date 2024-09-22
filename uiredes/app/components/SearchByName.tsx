@@ -10,8 +10,8 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage}: any) => {
 
   const handleCloseModal = () => setShowModal(false);
   const handleSearchByName = async () => {
-    if (gameName.trim().length < 4) {
-      setModalMessage('El nombre del juego debe tener al menos 4 caracteres para buscar.');
+    if (gameName.trim().length < 2) {
+      setModalMessage('El nombre del juego debe tener al menos 2 caracteres para buscar.');
       setShowModal(true);
       return;
     }
@@ -57,7 +57,7 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage}: any) => {
               <Button
                 variant="info"
                 onClick={handleSearchByName}
-                disabled={gameName.trim().length < 4}
+                disabled={gameName.trim().length <=2}
               >
                 Buscar
               </Button>
