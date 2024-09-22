@@ -1,17 +1,33 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState } from 'react';
 import { Card, Button, Form } from 'react-bootstrap';
 
-const NameCard = ({ playerName, setPlayerName, setStage }:any) => {
+const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
+  const [server, setServer] = useState('');
 
-  const handleNameSubmit = (e:any) => {
+  const handleServerChange = (e: any) => {
+    let input = e.target.value;
+    if (input.length >= 10) {
+      if (!input.endsWith('/')) {
+        input += '/';
+      }
+    }
+    setServer(input);
+  };
+  const isFormValid = playerName.trim().length >= 4 && server.trim().length >= 10;
+
+  const handleNameSubmit = (e: any) => {
     e.preventDefault();
-    if (playerName.trim()) {
+    if (isFormValid) {
+      setSERVER(server);
       setStage('games');
     }
   };
 
   const handleSearchByName = () => {
-    setStage('searchGameName');
+    if (isFormValid) {
+      setSERVER(server);
+      setStage('searchGameName');
+    }
   };
 
   return (
@@ -29,26 +45,25 @@ const NameCard = ({ playerName, setPlayerName, setStage }:any) => {
               required
             />
           </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Ingresa la URL del Servidor</Form.Label>
+            <Form.Control
+              type="text"
+              value={server}
+              onChange={handleServerChange}
+              placeholder="Servidor"
+              required
+              minLength={10}
+            />
+          </Form.Group>
           <div className="d-grid gap-2">
-            <Button
-              variant="primary"
-              onClick={() => setStage('games')}
-              disabled={playerName.trim().length < 4}
-            >
+            <Button variant="primary" onClick={handleNameSubmit} disabled={!isFormValid}>
               Buscar un Juego
             </Button>
-            <Button
-              variant="secondary"
-              onClick={(e) => handleSearchByName()}
-              disabled={playerName.trim().length < 4}
-            >
+            <Button variant="secondary" onClick={handleSearchByName} disabled={!isFormValid}>
               Buscar por Nombre
             </Button>
-            <Button
-              variant="success"
-              onClick={() => setStage('create')}
-              disabled={playerName.trim().length < 4}
-            >
+            <Button variant="success" onClick={() => setStage('create')} disabled={!isFormValid}>
               Crear un Juego
             </Button>
           </div>

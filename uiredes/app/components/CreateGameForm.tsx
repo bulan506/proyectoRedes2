@@ -10,7 +10,7 @@ const CreateGameForm = ({
   handleCheckboxChange,
   handleCreateGame,
   setStage,
-}) => {
+}:any) => {
   return (
     <Card className="text-center mt-5">
       <Card.Body>

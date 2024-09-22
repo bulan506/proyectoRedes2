@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Container, ListGroup, Button, Alert, Form} from 'react-bootstrap';
 import ModalComponent from '@/app/components/ModalComponet'; // Importa el componente modal
 
-const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage}: any) => {
+const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage ,SERVER}: any) => {
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [gamesState, setGamesState] = useState([]);
@@ -17,7 +17,7 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage}: any) => {
     }
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER}api/games?name=${gameName}`,
+        `${SERVER}api/games?name=${gameName}`,
         {
           method: 'GET',
           headers: {
@@ -38,7 +38,8 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage}: any) => {
         setShowModal(true);
       }
     } catch (err: any) {
-        throw new Error(`Error HTTP! status: ${err}`);
+      setModalMessage('Ha ocurrido un error en la solicitud, por favor vuelva al inicio.');
+      setShowModal(true);
     }
   };
 

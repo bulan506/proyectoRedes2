@@ -12,8 +12,6 @@ import PasswordModal from '@/app/components/passwordModal';
 import SearchByName from '@/app/components/SearchByName';
 
 
-const SERVER = process.env.NEXT_PUBLIC_SERVER;
-
 export default function GamePage() {
   const [games, setGames] = useState([]);
   const [error, setError] = useState(null);
@@ -30,7 +28,8 @@ export default function GamePage() {
   const [usePassword, setUsePassword] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [gamesPerPage] = useState(200);
+  const [gamesPerPage] = useState(150);
+  const [SERVER, setSERVER] = useState('');
 
   useEffect(() => {
     if (stage === 'games') {
@@ -47,12 +46,10 @@ export default function GamePage() {
           Accept: 'application/json',
         },
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+     
       const data = await response.json();
       setGames(data.data);
-      setTotalPages(10);
+      setTotalPages(15);
     } catch (err) {
       setError(err.message);
       console.error('Error fetching games:', err);
@@ -197,6 +194,7 @@ export default function GamePage() {
           playerName={playerName}
           setPlayerName={setPlayerName}
           setStage={setStage}
+          setSERVER={setSERVER}
         />
       )}
       {stage === 'create' && (
@@ -229,6 +227,7 @@ export default function GamePage() {
           game={selectedGame}
           password={gamePassword}
           playerName={playerName}
+          SERVER={SERVER}
         />
       )}
       {stage === 'searchGameName' && (
@@ -236,6 +235,7 @@ export default function GamePage() {
         handleJoinGame={handleJoinGame}
         setSelectedGame={setSelectedGame}
         setStage={setStage}
+        SERVER={SERVER}
         />
       )}
       <ModalComponent

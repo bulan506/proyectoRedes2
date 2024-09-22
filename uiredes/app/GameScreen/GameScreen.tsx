@@ -4,9 +4,8 @@ import { Alert } from 'react-bootstrap';
 import "@/app/styles/GameInterface.css";
 import "@/app/styles/VoteButtons.css";
 import ModalComponent from '@/app/components/ModalComponet';
-const SERVER = process.env.NEXT_PUBLIC_SERVER;
 
-const GameScreen = ({ game, password, playerName }: any) => {
+const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   const [error, setError] = useState('');
   const [players, setPlayers] = useState(game.players || []);
   const [selectedGroup, setSelectedGroup] = useState([]);
@@ -296,7 +295,7 @@ const GameScreen = ({ game, password, playerName }: any) => {
         method: 'HEAD',
         headers: data,
       });
-      
+
       if (response.status === 200) {
         showModalWithMessage('El juego ha comenzado exitosamente.');
         fetchGameState();
