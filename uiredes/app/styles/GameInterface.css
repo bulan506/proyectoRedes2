@@ -49,10 +49,18 @@
     background-color: #007bff;
     color: white;
     transition: background-color 0.3s;
+    margin-top: 10%;
   }
   
   .actions button:hover {
     background-color: #0056b3;
+  }
+
+  .actions button:disabled{
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    opacity: 0.7;
   }
   
   .players-div{
@@ -91,5 +99,20 @@
     display: flex; /* Alineación en fila */
     flex-wrap: wrap; /* Permitir múltiples filas si es necesario */
     gap: 10px; /* Espacio entre los círculos */
+  }
+
+  .enemy-marker {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .leader-marker {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .player-button.enemy {
+    background-color: red;
+    color: white;
   }
   

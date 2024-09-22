@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Alert, Modal, Form, Button } from 'react-bootstrap';
+import { Modal, Form, Button } from 'react-bootstrap';
 
 const PasswordModal = ({ 
     show, 
@@ -8,7 +8,7 @@ const PasswordModal = ({
     setGamePassword, 
     handlePasswordSubmit, 
     selectedGame 
-  }) => {
+  }:any) => {
     return (
       <Modal show={show} onHide={onHide}>
         <Modal.Header closeButton>

@@ -1,0 +1,26 @@
+.voting-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .vote-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  
+  .vote-button:hover {
+    transform: scale(1.1);
+  }
+  
+  .vote-button.voted {
+    color: #4CAF50;  /* Green color for the voted button */
+  }
+  
+  .vote-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
