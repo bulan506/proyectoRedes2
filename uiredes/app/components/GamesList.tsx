@@ -27,6 +27,7 @@ const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame, cu
                 setSelectedGame(game);
                 handleJoinGame(game);
               }}
+              disabled={game.players.length >= 10 || game.status === 'rounds' ||game.status === 'ended'}
             >
               {game.players.length >= 10 ? 'Lleno' : 'Jugar'}
             </Button>

@@ -296,17 +296,17 @@ const GameScreen = ({ game, password, playerName }: any) => {
         method: 'HEAD',
         headers: data,
       });
-      const errorMsg = response.headers.get('X-msg');
+      
       if (response.status === 200) {
         showModalWithMessage('El juego ha comenzado exitosamente.');
         fetchGameState();
       } else {
         const statusMessages: any = {
-          401: `No autorizado: ${errorMsg || 'Sin mensaje'}`,
+          401: `No autorizado: ${response.msg || 'Sin mensaje'}`,
           403: 'Acceso prohibido: usted no es un owner',
-          404: `Juego no encontrado: ${errorMsg || 'Sin mensaje'}`,
-          409: `El juego ya ha comenzado: ${errorMsg || 'Sin mensaje'}`,
-          428: `Se necesitan 5 jugadores para comenzar: ${errorMsg || 'Sin mensaje'}`,
+          404: `Juego no encontrado: ${response.msg  || 'Sin mensaje'}`,
+          409: `El juego ya ha comenzado: ${response.msg || 'Sin mensaje'}`,
+          428: `Se necesitan 5 jugadores para comenzar: ${response.msg || 'Sin mensaje'}`,
         };
         showModalWithMessage(statusMessages[response.status] || `Error desconocido: ${response.status}`);
       }

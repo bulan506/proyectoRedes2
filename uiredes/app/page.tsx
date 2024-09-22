@@ -9,6 +9,8 @@ import NameCard from '@/app/components/NameCard';
 import CreateGameForm from '@/app/components/CreateGameForm';
 import GamesList from '@/app/components/GamesList';
 import PasswordModal from '@/app/components/passwordModal';
+import SearchByName from '@/app/components/SearchByName';
+
 
 const SERVER = process.env.NEXT_PUBLIC_SERVER;
 
@@ -58,7 +60,7 @@ export default function GamePage() {
   };
 
   const fetchCreateGames = async (e) => {
-    e.preventDefault(); // Añadir esta línea
+    e.preventDefault();
     if (!gameName.trim() || !playerName.trim()) {
       showModalWithMessage('Error: El nombre del juego y el nombre del jugador son requeridos.');
       return;
@@ -227,6 +229,13 @@ export default function GamePage() {
           game={selectedGame}
           password={gamePassword}
           playerName={playerName}
+        />
+      )}
+      {stage === 'searchGameName' && (
+        <SearchByName 
+        handleJoinGame={handleJoinGame}
+        setSelectedGame={setSelectedGame}
+        setStage={setStage}
         />
       )}
       <ModalComponent

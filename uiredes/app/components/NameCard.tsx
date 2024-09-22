@@ -1,12 +1,17 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { Card, Button, Form } from 'react-bootstrap';
 
 const NameCard = ({ playerName, setPlayerName, setStage }:any) => {
-  const handleNameSubmit = (e) => {
+
+  const handleNameSubmit = (e:any) => {
     e.preventDefault();
     if (playerName.trim()) {
       setStage('games');
     }
+  };
+
+  const handleSearchByName = () => {
+    setStage('searchGameName');
   };
 
   return (
@@ -34,7 +39,7 @@ const NameCard = ({ playerName, setPlayerName, setStage }:any) => {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => alert("Buscar por Nombre aún no implementado")}
+              onClick={(e) => handleSearchByName()}
               disabled={playerName.trim().length < 4}
             >
               Buscar por Nombre
