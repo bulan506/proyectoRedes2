@@ -13,6 +13,7 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
     }
     setServer(input);
   };
+
   const isFormValid = playerName.trim().length >= 4 && server.trim().length >= 10;
 
   const handleNameSubmit = (e: any) => {
@@ -27,6 +28,13 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
     if (isFormValid) {
       setSERVER(server);
       setStage('searchGameName');
+    }
+  };
+
+  const handleCreateGame = () => {
+    if (isFormValid) {
+      setSERVER(server);
+      setStage('create');
     }
   };
 
@@ -63,7 +71,7 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
             <Button variant="secondary" onClick={handleSearchByName} disabled={!isFormValid}>
               Buscar por Nombre
             </Button>
-            <Button variant="success" onClick={() => setStage('create')} disabled={!isFormValid}>
+            <Button variant="success" onClick={handleCreateGame} disabled={!isFormValid}>
               Crear un Juego
             </Button>
           </div>

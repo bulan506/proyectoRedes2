@@ -4,6 +4,12 @@ import { Alert } from 'react-bootstrap';
 import "@/app/styles/GameInterface.css";
 import "@/app/styles/VoteButtons.css";
 import ModalComponent from '@/app/components/ModalComponet';
+import PlayerInfo from "@/app/GameScreen/PlayerInfo";
+import PlayersList from "@/app/GameScreen/PlayersList";
+import VotingButtons from "@/app/GameScreen/VotingButtons";
+import ProposedGroup from "@/app/GameScreen/ProposedGroup";
+import Actions from "@/app/GameScreen/Actions";
+
 
 const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   const [error, setError] = useState('');
@@ -39,7 +45,9 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
         setGameStatus(data.data.status);
         setCurrentRound(data.data.currentRound);
         setEnemies(data.data.enemies);
-        if (gameStatus === 'ended') { }
+        if (gameStatus === 'ended') { 
+          countWinner();
+        }
       } else {
         showModalWithMessage(`Error: ${response.status}`);
       }
@@ -132,15 +140,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
     setAllVoted(hasAllVoted);
   };
 
-  const selectGroup = (player) => {
-    setSelectedGroup((prevGroup) => {
-      if (prevGroup.includes(player)) {
-        return prevGroup.filter((p) => p !== player); // Deseleccionar
-      } else {
-        return [...prevGroup, player]; // Seleccionar
-      }
-    });
-  };
+
 
   const submitGroup = async () => {
     if (selectedGroup.length === 0) {
@@ -239,7 +239,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
       const errorMsg = response.headers.get('X-msg');
       if (response.ok) {
         setAction(actionValue);
-        fetchRoundInfo(); // Refrescar la información de la ronda
+        fetchRoundInfo(); 
       } else {
         const statusMessages: any = {
           401: `No autorizado: ${errorMsg || 'Sin mensaje'}`,
@@ -329,92 +329,29 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
       <h1>Nombre del Juego: {game.name}</h1>
       {leader && (<h1>El lider es: {leader}</h1>)}
       {roundStatus && (<h1>El estado de la partida es: {roundStatus}</h1>)}
-
-
-      <>
-        {error && <Alert variant="danger">{error}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
+      <>        
         <div className="game-interface">
-          <div className="player-info">
-            <p>{playerName}</p>
-            {isEnemy(playerName) && <p className="enemy-marker"> Eres un enemigo </p>}
-            {imLeader() && <p className="leader-marker"> Eres el líder </p>}
-          </div>
-          <div className="players-div">
-            {players.map((player, index) => (
-              <button
-                key={index}
-                className={`player-button 
-                  ${selectedGroup.includes(player) ? 'selected' : ''}
-                  ${isEnemy(playerName) && isEnemy(player) ? 'enemy' : ''}
-                `}
-                onClick={() => imLeader() && selectGroup(player)}
-              >
-                <p>{player}</p>
-              </button>
-            ))}
-          </div>
+        <PlayerInfo playerName={playerName} isEnemy={isEnemy(playerName)} isLeader={imLeader()} />
+        <PlayersList players={players} selectedGroup={selectedGroup} isLeader={imLeader()} isEnemy={isEnemy(playerName)} setSelectedGroup={setSelectedGroup} isEnemyF={isEnemy}/>
+         
           {imLeader() && roundStatus === 'waiting-on-leader' && (
             <>
               <div className="selected-group-info">
                 <h2>Grupo Seleccionado:</h2>
-                <ul>
-                  {selectedGroup.map((player, index) => (
-                    <li key={index}>{player}</li>
-                  ))}
-                </ul>
+                <ul>{selectedGroup.map((player, index) => (<li key={index}>{player}</li>))}</ul>
               </div>
             </>
           )}
-          {proposedGroup.length > 0 && roundStatus === 'voting' && (
-            <div className="proposed-group-info">
-              <h2>Grupo Propuesto:</h2>
-              <ul>
-                {proposedGroup.map((player, index) => (
-                  <li key={index}>{player}</li>
-                ))}
-              </ul>
-              <div className="voting-buttons">
-                <button
-                  onClick={() => submitVote('true')}
-                  disabled={vote !== null}
-                  className={`vote-button ${vote === 'true' ? 'voted' : ''}`}
-                  aria-label="Votar a favor"
-                >
-                  &#128077; {/* Thumbs up emoji */}
-                </button>
-                <button
-                  onClick={() => submitVote('false')}
-                  disabled={vote !== null}
-                  className={`vote-button ${vote === 'false' ? 'voted' : ''}`}
-                  aria-label="Votar en contra"
-                >
-                  &#128078; {/* Thumbs down emoji */}
-                </button>
-              </div>
 
-            </div>
-          )}
+          {proposedGroup.length > 0 && roundStatus === 'voting' && (<>
+            <ProposedGroup proposedGroup={proposedGroup} />
+            <VotingButtons vote={vote} roundStatus={roundStatus} submitVote={submitVote} />
+          </>)}
+
           {allVoted && roundStatus === 'waiting-on-group' && imPartOfGroup(playerName) && (
-            <div className="actions">
-              <button
-                onClick={() => submitAction(true)}
-                disabled={action !== null}
-                className="action-button"
-              >
-                Colaborar
-              </button>
-              {isEnemy(playerName) && (
-                <button
-                  onClick={() => submitAction(false)}
-                  disabled={action !== null}
-                  className="actions-button"
-                >
-                  Sabotear
-                </button>
-              )}
-            </div>
-          )}
-
+          <Actions playerName={playerName} enemies={enemies} action={action} submitAction={submitAction} />
+           )}
           <div className="actions">
             {isOwner() && gameStatus === 'lobby' && (
               <button style={{marginTop: '10%'}} onClick={startGame}>Iniciar Juego</button>
