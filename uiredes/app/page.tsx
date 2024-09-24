@@ -51,8 +51,9 @@ export default function GamePage() {
       setGames(data.data);
       setTotalPages(15);
     } catch (err) {
-      setError(err.message);
-      console.error('Error fetching games:', err);
+      setGames([])
+      showModalWithMessage('Ha ocurrido un error al hacer la solicitud, vuelva al inicio.');
+      return;
     }
   };
 
