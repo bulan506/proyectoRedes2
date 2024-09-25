@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Card, Button, Form } from 'react-bootstrap';
+import { Card, Button, Form, Alert } from 'react-bootstrap';
 
 const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
   const [server, setServer] = useState('');
+  const [nameError, setNameError] = useState('');
 
   const handleServerChange = (e: any) => {
     let input = e.target.value;
@@ -14,7 +15,17 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
     setServer(input);
   };
 
-  const isFormValid = playerName.trim().length >= 4 && server.trim().length >= 10;
+  const handleNameChange = (e: any) => {
+    const newName = e.target.value;
+    if (newName.length <= 20) {
+      setPlayerName(newName);
+      setNameError('');
+    } else {
+      setNameError('El nombre no puede tener más de 20 caracteres.');
+    }
+  };
+
+  const isFormValid = playerName.trim().length >= 4 && playerName.trim().length <= 20 && server.trim().length >= 10;
 
   const handleNameSubmit = (e: any) => {
     e.preventDefault();
@@ -48,10 +59,12 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
             <Form.Control
               type="text"
               value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
+              onChange={handleNameChange}
               placeholder="Nickname"
               required
+              maxLength={20}
             />
+            {nameError && <Alert variant="danger">{nameError}</Alert>}
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Ingresa la URL del Servidor</Form.Label>
