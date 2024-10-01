@@ -81,8 +81,9 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage ,SERVER}: any)
                 setSelectedGame(game);
                 handleJoinGame(game);
               }}
-            >
-              {game.players.length >= 10 ? 'Lleno' : 'Jugar'}
+              disabled={game.players.length >= 10 || game.status === 'rounds' ||game.status === 'ended'}
+              >
+                {game.players.length >= 10 ? 'Lleno' : 'Jugar'}
             </Button>
           </ListGroup.Item>
         ))}
