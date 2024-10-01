@@ -101,7 +101,7 @@ export default function GamePage() {
       }
     } catch (err) {
       setError(err.message);
-      showModalWithMessage('Error: ' + err.message);
+      showModalWithMessage('Ha ocurrido un error por favor vuelva al incio');
       console.error('Error fetching games:', err);
     }
   };

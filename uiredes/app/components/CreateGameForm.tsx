@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Button, Form } from 'react-bootstrap';
+import React from "react";
+import { Card, Button, Form } from "react-bootstrap";
 
 const CreateGameForm = ({
   gameName,
@@ -10,7 +10,11 @@ const CreateGameForm = ({
   handleCheckboxChange,
   handleCreateGame,
   setStage,
-}:any) => {
+}: any) => {
+  const isButtonDisabled =
+    !gameName.trim() ||
+    gameName.trim().length < 4 ||
+    (usePassword && (!gamePassword.trim() || gamePassword.trim().length < 4));
   return (
     <Card className="text-center mt-5">
       <Card.Body>
@@ -24,7 +28,14 @@ const CreateGameForm = ({
               onChange={(e) => setGameName(e.target.value)}
               placeholder="Nombre del Juego"
               required
+              maxLength={19}
             />
+            {gameName.trim().length > 0 &&
+                gameName.trim().length <=3 && (
+                  <Form.Text className="text-danger">
+                    El nombre del juego tiene que tener más de 4 caracteres y no más de 15 caracteres.
+                  </Form.Text>
+                )}
           </Form.Group>
           <div className="text-start px-3 py-2">
             <Form.Check
@@ -35,20 +46,36 @@ const CreateGameForm = ({
           </div>
           {usePassword && (
             <Form.Group className="mb-3">
-              <Form.Label>Password del Juego</Form.Label>
+              <Form.Label>Contraseña del Juego</Form.Label>
               <Form.Control
                 type="password"
                 value={gamePassword}
                 onChange={(e) => setGamePassword(e.target.value)}
                 placeholder="Password"
                 required
+                maxLength={11}
               />
+              {gamePassword.trim().length > 0 &&
+                gamePassword.trim().length < 4 && (
+                  <Form.Text className="text-danger">
+                    La contraseña debe tener al menos 4 caracteres .
+                  </Form.Text>
+                )}
             </Form.Group>
           )}
-          <Button variant="success" type="submit" className="mt-3">
+          <Button
+            variant="success"
+            type="submit"
+            className="mt-3"
+            disabled={isButtonDisabled}
+          >
             Crear Juego
           </Button>
-          <Button variant="secondary" onClick={() => setStage('name')} className="mt-3">
+          <Button
+            variant="secondary"
+            onClick={() => setStage("name")}
+            className="mt-3"
+          >
             Volver
           </Button>
         </Form>
