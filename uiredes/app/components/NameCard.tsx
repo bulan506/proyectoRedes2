@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Button, Form, Alert } from 'react-bootstrap';
 
 const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
-  const [server, setServer] = useState('');
+  const [server, setServer] = useState('http://localhost:5140/');
   const [nameError, setNameError] = useState('');
 
   const handleServerChange = (e: any) => {
@@ -50,12 +50,12 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
   };
 
   return (
-    <Card className="text-center mt-5">
+    <Card className="text-center mt-5" style={{width: '550px', backgroundColor: '#393937'}}>
       <Card.Body>
-        <Card.Title>Bienvenido al Juego</Card.Title>
+        <Card.Title style={{color: '#ECEADF'}}>Bienvenido al Juego</Card.Title>
         <Form onSubmit={handleNameSubmit}>
           <Form.Group className="mb-3">
-            <Form.Label>Ingresa tu Nickname</Form.Label>
+            <Form.Label style={{color: '#ECEADF'}}>Ingresa tu Nickname</Form.Label>
             <Form.Control
               type="text"
               value={playerName}
@@ -67,7 +67,7 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
             {nameError && <Alert variant="danger">{nameError}</Alert>}
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Ingresa la URL del Servidor</Form.Label>
+            <Form.Label style={{color: '#ECEADF'}}>Ingresa la URL del Servidor</Form.Label>
             <Form.Control
               type="text"
               value={server}
@@ -78,7 +78,7 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
             />
           </Form.Group>
           <div className="d-grid gap-2">
-            <Button variant="primary" onClick={handleNameSubmit} disabled={!isFormValid}>
+            <Button variant="primary" onClick={handleNameSubmit} disabled={!isFormValid} style={{backgroundColor: '#D97757', borderColor: '#D97757'}}>
               Buscar un Juego
             </Button>
             <Button variant="secondary" onClick={handleSearchByName} disabled={!isFormValid}>

@@ -17,11 +17,11 @@ const CreateGameForm = ({
     (usePassword && (!gamePassword.trim() || gamePassword.trim().length < 4));
   return (
     <Card className="text-center mt-5">
-      <Card.Body>
-        <Card.Title>Crear un Nuevo Juego</Card.Title>
+      <Card.Body style={{backgroundColor: '#393937'}}>
+        <Card.Title style={{color: '#ECEADF'}}>Crear un Nuevo Juego</Card.Title>
         <Form onSubmit={(e) => handleCreateGame(e)}>
           <Form.Group className="mb-3">
-            <Form.Label>Nombre del Juego</Form.Label>
+            <Form.Label style={{color: '#ECEADF'}}>Nombre del Juego</Form.Label>
             <Form.Control
               type="text"
               value={gameName}
@@ -40,13 +40,14 @@ const CreateGameForm = ({
           <div className="text-start px-3 py-2">
             <Form.Check
               type="checkbox"
+              style={{color: '#ECEADF'}}
               label="Poner contraseña al juego"
               onChange={handleCheckboxChange}
             />
           </div>
           {usePassword && (
             <Form.Group className="mb-3">
-              <Form.Label>Contraseña del Juego</Form.Label>
+              <Form.Label style={{color: '#ECEADF'}}>Contraseña del Juego</Form.Label>
               <Form.Control
                 type="password"
                 value={gamePassword}

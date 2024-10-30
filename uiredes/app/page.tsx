@@ -85,7 +85,7 @@ export default function GamePage() {
       });
       const dataResponse = await response.json();
 
-      if (response.status === 200 || response.status === 403) {
+      if (response.ok) {
         const gameIdentification = dataResponse.data.id;
         const gameOwner = dataResponse.data.owner;
         setGameId(gameIdentification);

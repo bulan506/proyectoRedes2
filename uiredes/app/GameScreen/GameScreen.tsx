@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-bootstrap';
 import "@/app/styles/GameInterface.css";
 import "@/app/styles/VoteButtons.css";
+import "@/app/styles/ScoreboardStyles.css";
 import ModalComponent from '@/app/components/ModalComponet';
 import PlayerInfo from "@/app/GameScreen/PlayerInfo";
 import PlayersList from "@/app/GameScreen/PlayersList";
 import VotingButtons from "@/app/GameScreen/VotingButtons";
 import ProposedGroup from "@/app/GameScreen/ProposedGroup";
 import Actions from "@/app/GameScreen/Actions";
+import { set } from "zod";
 
 
 const GameScreen = ({ game, password, playerName, SERVER }: any) => {
@@ -26,6 +28,9 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   const [roundStatus, setRoundStatus] = useState('');
   const [allVoted, setAllVoted] = useState(false); // Nuevo estado
   const [action, setAction] = useState(null);
+
+  const [citizensScore, setCitizensScore] = useState(0);
+  const [enemiesScore, setEnemiesScore] = useState(0);
 
   const fetchGameState = async () => {
     const headers: any = {
@@ -121,8 +126,10 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
         if (data.data.status === 'ended') { 
           fetchGameState();
           if(data.data.result === 'citizens'){
+            setCitizensScore(citizensScore + 1);
             showModalWithMessage('¡Los ciudadanos ganaron la ronda!');
           }else if(data.data.result === 'enemies'){
+            setEnemiesScore(enemiesScore + 1);
             showModalWithMessage('¡Los enemigos ganaron la ronda!');
           }
         }
@@ -326,49 +333,68 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
 
   return (
     <div>
-      <h1>Nombre del Juego: {game.name}</h1>
-      {leader && (<h1>El lider es: {leader}</h1>)}
-      {roundStatus && (<h1>El estado de la partida es: {roundStatus}</h1>)}
-      {error && <Alert variant="danger">{error}</Alert>}
-      <>        
-        <div className="game-interface">
-        <PlayerInfo playerName={playerName} isEnemy={isEnemy(playerName)} isLeader={imLeader()} />
-        <PlayersList players={players} selectedGroup={selectedGroup} isLeader={imLeader()} isEnemy={isEnemy(playerName)} setSelectedGroup={setSelectedGroup} isEnemyF={isEnemy}/>
-         
-          {imLeader() && roundStatus === 'waiting-on-leader' && (
-            <>
-              <div className="selected-group-info">
-                <h2>Grupo Seleccionado:</h2>
-                <ul>{selectedGroup.map((player, index) => (<li key={index}>{player}</li>))}</ul>
-              </div>
-            </>
-          )}
+      {/*<h1>Nombre del Juego: {game.name}</h1>*/}
+      {/*{leader && (<h1>El lider es: {leader}</h1>)}*/}
+      {/*{roundStatus && (<h1>El estado de la partida es: {roundStatus}</h1>)}*/}
+      {/*{error && <Alert variant="danger">{error}</Alert>}*/}
 
-          {proposedGroup.length > 0 && roundStatus === 'voting' && (<>
-            <ProposedGroup proposedGroup={proposedGroup} />
-            <VotingButtons vote={vote} roundStatus={roundStatus} submitVote={submitVote} />
-          </>)}
-
-          {allVoted && roundStatus === 'waiting-on-group' && imPartOfGroup(playerName) && (
-          <Actions playerName={playerName} enemies={enemies} action={action} submitAction={submitAction} />
-           )}
-          <div className="actions">
-            {isOwner() && gameStatus === 'lobby' && (
-              <button style={{marginTop: '10%'}} onClick={startGame}>Iniciar Juego</button>
-            )}
-            {imLeader() && gameStatus === 'rounds' && roundStatus === 'waiting-on-leader' &&(
-              <>
-                <button style={{marginTop: '10%'}} onClick={submitGroup}>Enviar Grupo</button>
-              </>
-            )}
+      <div className="container-scoreboard">
+        <div className="league">ContaminaDOS</div>
+        <div className="half">{game.name}</div>
+        <div className="half">Líder: {leader}</div>
+        <div className="scoreSection">
+          <div className="team">
+            <button style={{background: 'none', border: 'none'}}>&#129489;</button>
+            <span>Ciudadanos</span>
+          </div>
+          <div className="score">{citizensScore} : {enemiesScore}</div>
+          <div className="team">
+            <span>Enemigos</span>
+            <button style={{background: 'none', border: 'none'}}>&#129399;</button>
           </div>
         </div>
-        <ModalComponent
-          showModal={showModal}
-          handleCloseModal={handleCloseModal}
-          modalMessage={modalMessage}
-        />
-      </>
+        {/*<div className="half">{roundNumber}</div>*/}
+        <div className="time">{roundStatus}</div>
+      </div>
+
+            
+      <div className="game-interface">
+      <PlayerInfo playerName={playerName} isEnemy={isEnemy(playerName)} isLeader={imLeader()} />
+      <PlayersList players={players} selectedGroup={selectedGroup} isLeader={imLeader()} isEnemy={isEnemy(playerName)} setSelectedGroup={setSelectedGroup} isEnemyF={isEnemy}/>
+        
+        {imLeader() && roundStatus === 'waiting-on-leader' && (
+          <>
+            <div className="selected-group-info">
+              <h2 className="label">Grupo Seleccionado:</h2>
+              <ul>{selectedGroup.map((player, index) => (<li className="label" key={index}>{player}</li>))}</ul>
+            </div>
+          </>
+        )}
+
+        {proposedGroup.length > 0 && roundStatus === 'voting' && (<>
+          <ProposedGroup proposedGroup={proposedGroup} />
+          <VotingButtons vote={vote} roundStatus={roundStatus} submitVote={submitVote} />
+        </>)}
+
+        {allVoted && roundStatus === 'waiting-on-group' && imPartOfGroup(playerName) && (
+        <Actions playerName={playerName} enemies={enemies} action={action} submitAction={submitAction} />
+          )}
+        <div className="actions">
+          {isOwner() && gameStatus === 'lobby' && (
+            <button style={{marginTop: '10%'}} onClick={startGame}>Iniciar Juego</button>
+          )}
+          {imLeader() && gameStatus === 'rounds' && roundStatus === 'waiting-on-leader' &&(
+            <>
+              <button style={{marginTop: '10%'}} onClick={submitGroup}>Enviar Grupo</button>
+            </>
+          )}
+        </div>
+      </div>
+      <ModalComponent
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        modalMessage={modalMessage}
+      />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { Container, ListGroup, Button, Alert , Pagination } from 'react-bootstra
 const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame, currentPage, totalPages, handlePageChange }:any) => { 
    return (
     <Container className="mt-5">
-      <h2 className="text-center">Juegos Disponibles</h2>
+      <h2 className="text-center" style={{color: '#ECEADF'}}>Juegos Disponibles</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <Button variant="secondary" onClick={() => setStage('name')} className="mt-3">
         Volver
@@ -14,15 +14,17 @@ const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame, cu
           <ListGroup.Item
             key={game.id}
             className="d-flex justify-content-between align-items-center"
+            style={{width: '625px', backgroundColor: '#393937'}}
           >
-            <div>
+            <div style={{color: '#D97757'}}>
               <strong>{game.name}</strong>
-              <span className="text-muted"> - Estado: {game.status}</span>
-              <span className="text-muted"> - Jugadores: {game.players.length}/10</span>
-              <span className="text-muted"> - Contraseña: {game.password ? 'Sí' : 'No'}</span>
+              <span  style={{color: '#ECEADF'}}> - Estado: {game.status}</span>
+              <span  style={{color: '#ECEADF'}}> - Jugadores: {game.players.length}/10</span>
+              <span  style={{color: '#ECEADF'}}> - Contraseña: {game.password ? 'Sí' : 'No'}</span>
             </div>
             <Button
               variant="primary"
+              style={{backgroundColor: '#D97757', borderColor: '#D97757'}}
               onClick={() => {
                 setSelectedGame(game);
                 handleJoinGame(game);
