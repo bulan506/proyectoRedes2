@@ -1,8 +1,6 @@
 **/.env
 **/.vscode
 **/.idea
-
 **/obj
-
 **/bin
 **/node_modules
