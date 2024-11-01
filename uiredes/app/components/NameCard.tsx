@@ -50,7 +50,7 @@ const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
   };
 
   return (
-    <Card className="text-center mt-5" style={{width: '550px', backgroundColor: '#393937'}}>
+    <Card className="text-center mt-5" style={{ backgroundColor: '#393937'}}>
       <Card.Body>
         <Card.Title style={{color: '#ECEADF'}}>Bienvenido al Juego</Card.Title>
         <Form onSubmit={handleNameSubmit}>

@@ -3,13 +3,13 @@ import { Container, ListGroup, Button, Alert , Pagination } from 'react-bootstra
 
 const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame, currentPage, totalPages, handlePageChange }:any) => { 
    return (
-    <Container className="mt-5">
+    <Container className="player-info">
       <h2 className="text-center" style={{color: '#ECEADF'}}>Juegos Disponibles</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <Button variant="secondary" onClick={() => setStage('name')} className="mt-3">
         Volver
       </Button>
-      <ListGroup>
+      <ListGroup  className="players-div">
         {games.map((game: any) => (
           <ListGroup.Item
             key={game.id}
@@ -36,6 +36,7 @@ const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame, cu
           </ListGroup.Item>
         ))}
       </ListGroup>
+      <div className="players-div">
       <Pagination className="mt-3 justify-content-center">
       <Pagination.First onClick={() => handlePageChange(0)} disabled={currentPage === 0} />
       <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 0} />
@@ -51,6 +52,7 @@ const GamesList = ({ games, error, handleJoinGame, setStage, setSelectedGame, cu
       <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages - 1} />
       <Pagination.Last onClick={() => handlePageChange(totalPages - 1)} disabled={currentPage === totalPages - 1} />
       </Pagination>
+      </div>
 
       <Button variant="secondary" onClick={() => setStage('name')} className="mt-3">
         Volver

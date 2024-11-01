@@ -28,6 +28,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   const [roundStatus, setRoundStatus] = useState('');
   const [allVoted, setAllVoted] = useState(false); // Nuevo estado
   const [action, setAction] = useState(null);
+  const [lastProcessedRound, setLastProcessedRound] = useState('');
 
   const [citizensScore, setCitizensScore] = useState(0);
   const [enemiesScore, setEnemiesScore] = useState(0);
@@ -123,14 +124,15 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
         setProposedGroup(data.data.group);
         setRoundStatus(data.data.status);
         checkAllPlayersVoted(data.data.votes);
-        if (data.data.status === 'ended') { 
-          fetchGameState();
+        if (data.data.status === 'ended' && currentRound !== lastProcessedRound) {
+          setLastProcessedRound(currentRound);
+          //fetchGameState();
           if(data.data.result === 'citizens'){
-            setCitizensScore(citizensScore + 1);
             showModalWithMessage('¡Los ciudadanos ganaron la ronda!');
+            setCitizensScore(citizensScore + 1);
           }else if(data.data.result === 'enemies'){
-            setEnemiesScore(enemiesScore + 1);
             showModalWithMessage('¡Los enemigos ganaron la ronda!');
+            setEnemiesScore(enemiesScore + 1);
           }
         }
         if(data.data.status === 'waiting-on-leader'){setAction(null);}
@@ -265,14 +267,14 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
 
   useEffect(() => {
     if (gameStatus !== 'ended') {
-      const intervalId = setInterval(fetchGameState, 3000);
+      const intervalId = setInterval(fetchGameState, 2000);
       return () => clearInterval(intervalId);
     }
   }, [gameStatus]);
 
   useEffect(() => {
     if (gameStatus === 'rounds') {
-      const intervalId = setInterval(fetchRoundInfo, 3000);
+      const intervalId = setInterval(fetchRoundInfo, 2000);
       return () => clearInterval(intervalId);
     }
   }, [gameStatus, currentRound]);
@@ -338,7 +340,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
       {/*{roundStatus && (<h1>El estado de la partida es: {roundStatus}</h1>)}*/}
       {/*{error && <Alert variant="danger">{error}</Alert>}*/}
 
-      <div className="container-scoreboard">
+      <div className="game-interface">
         <div className="league">ContaminaDOS</div>
         <div className="half">{game.name}</div>
         <div className="half">Líder: {leader}</div>
