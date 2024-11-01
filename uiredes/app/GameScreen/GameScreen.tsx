@@ -352,7 +352,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
           <div className="score">{citizensScore} : {enemiesScore}</div>
           <div className="team">
             <span>Enemigos</span>
-            <button style={{background: 'none', border: 'none'}}>&#129399;</button>
+            <button style={{background: 'none', border: 'none'}}>&#128520;</button>
           </div>
         </div>
         {/*<div className="half">{roundNumber}</div>*/}
