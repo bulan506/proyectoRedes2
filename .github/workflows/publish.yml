@@ -2,7 +2,7 @@ name: publish
 
 on:
   push:
-    branches: [ "master","Scoreboard" ]
+    branches: [ "Scoreboard" ]
   pull_request:
     branches: [ "Scoreboard" ]
 
