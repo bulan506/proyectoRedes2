@@ -11,7 +11,7 @@ import GamesList from '@/app/components/GamesList';
 import PasswordModal from '@/app/components/passwordModal';
 import SearchByName from '@/app/components/SearchByName';
 
-
+//testing
 export default function GamePage() {
   const [games, setGames] = useState([]);
   const [error, setError] = useState(null);
