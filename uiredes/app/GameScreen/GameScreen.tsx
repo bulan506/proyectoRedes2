@@ -63,23 +63,25 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   };
 
   const countWinner = async () => {
-    const headers: any = {
+    const headers = {
       'player': playerName,
+      ...(game.password && { password }),
     };
-    if (game.password) {
-      headers.password = password;
-    }
+  
     try {
       const response = await fetch(`${SERVER}api/games/${game.id}/rounds/`, {
         method: 'GET',
         headers,
       });
       const data = await response.json();
+  
       if (response.ok) {
-        const rounds = data.data; 
+        const rounds = data.data;
         let citizenWins = 0;
         let enemyWins = 0;
-        rounds.forEach((round: any) => {
+  
+        // Contar las rondas ganadas por ciudadanos y enemigos
+        rounds.forEach((round) => {
           if (round.status === "ended") {
             if (round.result === "citizens") {
               citizenWins++;
@@ -88,6 +90,12 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
             }
           }
         });
+  
+        // Actualizar el ScoreBoard
+        setCitizensScore(citizenWins);
+        setEnemiesScore(enemyWins);
+  
+        // Mostrar mensaje si uno de los equipos gana el juego (3 rondas)
         if (citizenWins >= 3) {
           showModalWithMessage("¡Los ciudadanos ganaron el juego!");
         } else if (enemyWins >= 3) {
@@ -100,47 +108,58 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
       throw new Error(`Error en la solicitud GET de ronda: ${error.message}`);
     }
   };
-
-
+  
   const fetchRoundInfo = async () => {
-    const headers: any = {
+    const headers = {
       'player': playerName,
+      ...(game.password && { password }),
     };
-    if (game.password) {
-      headers.password = password;
-    }
+  
     try {
       const response = await fetch(`${SERVER}api/games/${game.id}/rounds/${currentRound}`, {
         method: 'GET',
         headers,
       });
       const data = await response.json();
+  
       if (response.ok) {
-        if(data.data.status === 'voting' && data.data.votes.length === 0){
+        if (data.data.status === 'voting' && data.data.votes.length === 0) {
           setVote(null);
-          setAllVoted(false)
+          setAllVoted(false);
         }
+  
         setLeader(data.data.leader);
         setProposedGroup(data.data.group);
         setRoundStatus(data.data.status);
+  
         checkAllPlayersVoted(data.data.votes);
+  
+        // Llamar a handleRoundEnd y countWinner si la ronda ha terminado
         if (data.data.status === 'ended' && currentRound !== lastProcessedRound) {
-          setLastProcessedRound(currentRound);
-          //fetchGameState();
-          if(data.data.result === 'citizens'){
-            showModalWithMessage('¡Los ciudadanos ganaron la ronda!');
-            setCitizensScore(citizensScore + 1);
-          }else if(data.data.result === 'enemies'){
-            showModalWithMessage('¡Los enemigos ganaron la ronda!');
-            setEnemiesScore(enemiesScore + 1);
-          }
+          setLastProcessedRound(currentRound); // Marcar la ronda como procesada
+          handleRoundEnd(data.data.result); // Mostrar mensaje de ronda ganada
+          await countWinner(); // Actualizar el marcador y verificar si el juego terminó
         }
-        if(data.data.status === 'waiting-on-leader'){setAction(null);}
+  
+        if (data.data.status === 'waiting-on-leader') {
+          setAction(null);
+        }
       } else {
         showModalWithMessage(`Error al obtener la ronda: ${response.status}`);
       }
     } catch (error) {
       throw new Error(`Error en la solicitud GET de ronda: ${error.message}`);
+    }
+  };
+  
+  // Función para manejar el final de la ronda y mostrar el mensaje de victoria de la ronda
+  const handleRoundEnd = (result) => {
+    if (result === 'citizens') {
+      setCitizensScore(prevScore => prevScore + 1);
+      showModalWithMessage('¡Los ciudadanos ganaron la ronda!');
+    } else if (result === 'enemies') {
+      setEnemiesScore(prevScore => prevScore + 1);
+      showModalWithMessage('¡Los enemigos ganaron la ronda!');
     }
   };
 
