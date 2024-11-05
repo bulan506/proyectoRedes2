@@ -29,6 +29,8 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   const [allVoted, setAllVoted] = useState(false); // Nuevo estado
   const [action, setAction] = useState(null);
   const [lastProcessedRound, setLastProcessedRound] = useState('');
+  const [currentPhase, setCurrentPhase] = useState('');
+  const [roundNumber, setRoundNumber] = useState(1);
 
   const [citizensScore, setCitizensScore] = useState(0);
   const [enemiesScore, setEnemiesScore] = useState(0);
@@ -94,6 +96,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
         // Actualizar el ScoreBoard
         setCitizensScore(citizenWins);
         setEnemiesScore(enemyWins);
+        setRoundNumber(rounds.length);
   
         // Mostrar mensaje si uno de los equipos gana el juego (3 rondas)
         if (citizenWins >= 3) {
@@ -131,15 +134,11 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
         setLeader(data.data.leader);
         setProposedGroup(data.data.group);
         setRoundStatus(data.data.status);
-  
+        setCurrentPhase(data.data.phase || ''); 
         checkAllPlayersVoted(data.data.votes);
   
-        // Llamar a handleRoundEnd y countWinner si la ronda ha terminado
-        if (data.data.status === 'ended' && currentRound !== lastProcessedRound) {
-          setLastProcessedRound(currentRound); // Marcar la ronda como procesada
-          handleRoundEnd(data.data.result); // Mostrar mensaje de ronda ganada
-          await countWinner(); // Actualizar el marcador y verificar si el juego terminó
-        }
+        await countWinner(); // esto actualiza el marcador 100% bien
+        
   
         if (data.data.status === 'waiting-on-leader') {
           setAction(null);
@@ -152,16 +151,6 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
     }
   };
   
-  // Función para manejar el final de la ronda y mostrar el mensaje de victoria de la ronda
-  const handleRoundEnd = (result) => {
-    if (result === 'citizens') {
-      setCitizensScore(prevScore => prevScore + 1);
-      showModalWithMessage('¡Los ciudadanos ganaron la ronda!');
-    } else if (result === 'enemies') {
-      setEnemiesScore(prevScore => prevScore + 1);
-      showModalWithMessage('¡Los enemigos ganaron la ronda!');
-    }
-  };
 
   const checkAllPlayersVoted = (votes) => {
     const hasAllVoted = players.length === votes.length;
@@ -354,10 +343,6 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
 
   return (
     <div>
-      {/*<h1>Nombre del Juego: {game.name}</h1>*/}
-      {/*{leader && (<h1>El lider es: {leader}</h1>)}*/}
-      {/*{roundStatus && (<h1>El estado de la partida es: {roundStatus}</h1>)}*/}
-      {/*{error && <Alert variant="danger">{error}</Alert>}*/}
 
       <div className="game-interface">
         <div className="league">ContaminaDOS</div>
@@ -368,14 +353,22 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
             <button style={{background: 'none', border: 'none'}}>&#129489;</button>
             <span>Ciudadanos</span>
           </div>
-          <div className="score">{citizensScore} : {enemiesScore}</div>
+        
+          <div className="score">
+            {citizensScore} : {enemiesScore}
+          </div>
           <div className="team">
             <span>Enemigos</span>
             <button style={{background: 'none', border: 'none'}}>&#128520;</button>
           </div>
+          
         </div>
-        {/*<div className="half">{roundNumber}</div>*/}
         <div className="time">{roundStatus}</div>
+        <div className="score">
+           <div className="round-info" style={{fontSize: '0.8em', marginTop: '5px'}}>
+           {gameStatus ==='rounds' ? `Ronda: ${roundNumber}` : ''}  {currentPhase && gameStatus ==='rounds' ? `- Fase ${currentPhase}` : ''}
+           </div>
+          </div>
       </div>
 
             
