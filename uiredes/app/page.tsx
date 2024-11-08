@@ -220,6 +220,7 @@ export default function GamePage() {
           currentPage={currentPage}
           totalPages={totalPages}
           handlePageChange={handlePageChange}
+          SERVER={SERVER}
         />
       )}
       
