@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Button, Form, Alert } from 'react-bootstrap';
 
 const NameCard = ({ playerName, setPlayerName, setStage, setSERVER }: any) => {
-  const [server, setServer] = useState('https://contaminados.akamai.meseguercr.com/');
+  const [server, setServer] = useState('https://www.grupoe.oci.meseguercr.com/');
   const [nameError, setNameError] = useState('');
 
   const handleServerChange = (e: any) => {

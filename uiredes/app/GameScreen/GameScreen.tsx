@@ -313,8 +313,10 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
         headers: data,
       });
 
+      const xMsg = response.headers.get('X-Msg');
+
       if (response.status === 200) {
-        showModalWithMessage('El juego ha comenzado exitosamente.');
+        showModalWithMessage(`El juego ha comenzado exitosamente. ${xMsg || ''}`);
         fetchGameState();
       } else {
         const statusMessages: any = {

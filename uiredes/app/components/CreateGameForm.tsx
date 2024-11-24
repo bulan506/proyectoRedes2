@@ -13,8 +13,8 @@ const CreateGameForm = ({
 }: any) => {
   const isButtonDisabled =
     !gameName.trim() ||
-    gameName.trim().length < 4 ||
-    (usePassword && (!gamePassword.trim() || gamePassword.trim().length < 4));
+    gameName.trim().length < 3 ||
+    (usePassword && (!gamePassword.trim() || gamePassword.trim().length < 3));
   return (
     <Card className="text-center mt-5">
       <Card.Body style={{backgroundColor: '#393937'}}>
@@ -31,9 +31,9 @@ const CreateGameForm = ({
               maxLength={19}
             />
             {gameName.trim().length > 0 &&
-                gameName.trim().length <=3 && (
+                gameName.trim().length <3 && (
                   <Form.Text className="text-danger">
-                    El nombre del juego tiene que tener más de 4 caracteres y no más de 15 caracteres.
+                    El nombre del juego tiene que tener más de 3 caracteres y no más de 15 caracteres.
                   </Form.Text>
                 )}
           </Form.Group>
@@ -57,9 +57,9 @@ const CreateGameForm = ({
                 maxLength={11}
               />
               {gamePassword.trim().length > 0 &&
-                gamePassword.trim().length < 4 && (
+                gamePassword.trim().length < 3 && (
                   <Form.Text className="text-danger">
-                    La contraseña debe tener al menos 4 caracteres .
+                    La contraseña debe tener al menos 3 caracteres .
                   </Form.Text>
                 )}
             </Form.Group>
