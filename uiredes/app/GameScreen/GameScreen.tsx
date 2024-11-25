@@ -71,7 +71,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
     };
   
     try {
-      const response = await fetch(`${SERVER}api/games/${game.id}/rounds/`, {
+      const response = await fetch(`${SERVER}api/games/${game.id}/rounds`, {
         method: 'GET',
         headers,
       });
@@ -294,7 +294,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   }, [gameStatus]);
 
 
-  const isOwner = () => playerName.toLowerCase() === game.owner.toLowerCase();
+  const isOwner = () => playerName.toLowerCase() === game.owner?.toLowerCase();
   const isEnemy = (player) => enemies.includes(player);
   const imLeader = () => playerName === leader;
   const imPartOfGroup = (player) => proposedGroup.includes(player);
