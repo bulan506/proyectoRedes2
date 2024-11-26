@@ -11,7 +11,7 @@ import GamesList from '@/app/components/GamesList';
 import PasswordModal from '@/app/components/passwordModal';
 import SearchByName from '@/app/components/SearchByName';
 
-
+//testing e
 export default function GamePage() {
   const [games, setGames] = useState([]);
   const [error, setError] = useState(null);
@@ -75,7 +75,7 @@ export default function GamePage() {
       data.password = gamePassword;
     }
     try {
-      const response = await fetch(`${SERVER}api/games/`, {
+      const response = await fetch(`${SERVER}api/games`, {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export default function GamePage() {
       });
       const dataResponse = await response.json();
 
-      if (response.status === 200 || response.status === 403) {
+      if (response.ok) {
         const gameIdentification = dataResponse.data.id;
         const gameOwner = dataResponse.data.owner;
         setGameId(gameIdentification);
@@ -95,13 +95,13 @@ export default function GamePage() {
         showModalWithMessage('El juego ha sido creado exitosamente.');
         setStage('match')
       } else if (response.status === 400 || response.status === 409) {
-        showModalWithMessage('Error: ' + dataResponse.msg);
+        showModalWithMessage('Error: ' + dataResponse.msg + ', estado:'+dataResponse.status);
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (err) {
-      setError(err.message);
-      showModalWithMessage('Ha ocurrido un error por favor vuelva al incio');
+      //setError(err.message);
+      showModalWithMessage('Ha ocurrido un error por favor vuelva al incio '+err.message);
       console.error('Error fetching games:', err);
     }
   };
@@ -220,6 +220,7 @@ export default function GamePage() {
           currentPage={currentPage}
           totalPages={totalPages}
           handlePageChange={handlePageChange}
+          SERVER={SERVER}
         />
       )}
       

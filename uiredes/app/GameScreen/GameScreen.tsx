@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-bootstrap';
 import "@/app/styles/GameInterface.css";
 import "@/app/styles/VoteButtons.css";
+import "@/app/styles/ScoreboardStyles.css";
 import ModalComponent from '@/app/components/ModalComponet';
 import PlayerInfo from "@/app/GameScreen/PlayerInfo";
 import PlayersList from "@/app/GameScreen/PlayersList";
 import VotingButtons from "@/app/GameScreen/VotingButtons";
 import ProposedGroup from "@/app/GameScreen/ProposedGroup";
 import Actions from "@/app/GameScreen/Actions";
+import { set } from "zod";
 
 
 const GameScreen = ({ game, password, playerName, SERVER }: any) => {
@@ -26,6 +28,12 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   const [roundStatus, setRoundStatus] = useState('');
   const [allVoted, setAllVoted] = useState(false); // Nuevo estado
   const [action, setAction] = useState(null);
+  const [lastProcessedRound, setLastProcessedRound] = useState('');
+  const [currentPhase, setCurrentPhase] = useState('');
+  const [roundNumber, setRoundNumber] = useState(1);
+
+  const [citizensScore, setCitizensScore] = useState(0);
+  const [enemiesScore, setEnemiesScore] = useState(0);
 
   const fetchGameState = async () => {
     const headers: any = {
@@ -57,23 +65,25 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   };
 
   const countWinner = async () => {
-    const headers: any = {
+    const headers = {
       'player': playerName,
+      ...(game.password && { password }),
     };
-    if (game.password) {
-      headers.password = password;
-    }
+  
     try {
-      const response = await fetch(`${SERVER}api/games/${game.id}/rounds/`, {
+      const response = await fetch(`${SERVER}api/games/${game.id}/rounds`, {
         method: 'GET',
         headers,
       });
       const data = await response.json();
+  
       if (response.ok) {
-        const rounds = data.data; 
+        const rounds = data.data;
         let citizenWins = 0;
         let enemyWins = 0;
-        rounds.forEach((round: any) => {
+  
+        // Contar las rondas ganadas por ciudadanos y enemigos
+        rounds.forEach((round) => {
           if (round.status === "ended") {
             if (round.result === "citizens") {
               citizenWins++;
@@ -82,6 +92,13 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
             }
           }
         });
+  
+        // Actualizar el ScoreBoard
+        setCitizensScore(citizenWins);
+        setEnemiesScore(enemyWins);
+        setRoundNumber(rounds.length);
+  
+        // Mostrar mensaje si uno de los equipos gana el juego (3 rondas)
         if (citizenWins >= 3) {
           showModalWithMessage("¡Los ciudadanos ganaron el juego!");
         } else if (enemyWins >= 3) {
@@ -94,39 +111,38 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
       throw new Error(`Error en la solicitud GET de ronda: ${error.message}`);
     }
   };
-
-
+  
   const fetchRoundInfo = async () => {
-    const headers: any = {
+    const headers = {
       'player': playerName,
+      ...(game.password && { password }),
     };
-    if (game.password) {
-      headers.password = password;
-    }
+  
     try {
       const response = await fetch(`${SERVER}api/games/${game.id}/rounds/${currentRound}`, {
         method: 'GET',
         headers,
       });
       const data = await response.json();
+  
       if (response.ok) {
-        if(data.data.status === 'voting' && data.data.votes.length === 0){
+        if (data.data.status === 'voting' && data.data.votes.length === 0) {
           setVote(null);
-          setAllVoted(false)
+          setAllVoted(false);
         }
+  
         setLeader(data.data.leader);
         setProposedGroup(data.data.group);
         setRoundStatus(data.data.status);
+        setCurrentPhase(data.data.phase || ''); 
         checkAllPlayersVoted(data.data.votes);
-        if (data.data.status === 'ended') { 
-          fetchGameState();
-          if(data.data.result === 'citizens'){
-            showModalWithMessage('¡Los ciudadanos ganaron la ronda!');
-          }else if(data.data.result === 'enemies'){
-            showModalWithMessage('¡Los enemigos ganaron la ronda!');
-          }
+  
+        await countWinner(); // esto actualiza el marcador 100% bien
+        
+  
+        if (data.data.status === 'waiting-on-leader') {
+          setAction(null);
         }
-        if(data.data.status === 'waiting-on-leader'){setAction(null);}
       } else {
         showModalWithMessage(`Error al obtener la ronda: ${response.status}`);
       }
@@ -134,6 +150,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
       throw new Error(`Error en la solicitud GET de ronda: ${error.message}`);
     }
   };
+  
 
   const checkAllPlayersVoted = (votes) => {
     const hasAllVoted = players.length === votes.length;
@@ -258,14 +275,14 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
 
   useEffect(() => {
     if (gameStatus !== 'ended') {
-      const intervalId = setInterval(fetchGameState, 3000);
+      const intervalId = setInterval(fetchGameState, 2000);
       return () => clearInterval(intervalId);
     }
   }, [gameStatus]);
 
   useEffect(() => {
     if (gameStatus === 'rounds') {
-      const intervalId = setInterval(fetchRoundInfo, 3000);
+      const intervalId = setInterval(fetchRoundInfo, 2000);
       return () => clearInterval(intervalId);
     }
   }, [gameStatus, currentRound]);
@@ -277,7 +294,7 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
   }, [gameStatus]);
 
 
-  const isOwner = () => playerName.toLowerCase() === game.owner.toLowerCase();
+  const isOwner = () => playerName.toLowerCase() === game.owner?.toLowerCase();
   const isEnemy = (player) => enemies.includes(player);
   const imLeader = () => playerName === leader;
   const imPartOfGroup = (player) => proposedGroup.includes(player);
@@ -296,8 +313,10 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
         headers: data,
       });
 
+      const xMsg = response.headers.get('X-Msg');
+
       if (response.status === 200) {
-        showModalWithMessage('El juego ha comenzado exitosamente.');
+        showModalWithMessage(`El juego ha comenzado exitosamente. ${xMsg || ''}`);
         fetchGameState();
       } else {
         const statusMessages: any = {
@@ -326,49 +345,72 @@ const GameScreen = ({ game, password, playerName, SERVER }: any) => {
 
   return (
     <div>
-      <h1>Nombre del Juego: {game.name}</h1>
-      {leader && (<h1>El lider es: {leader}</h1>)}
-      {roundStatus && (<h1>El estado de la partida es: {roundStatus}</h1>)}
-      {error && <Alert variant="danger">{error}</Alert>}
-      <>        
-        <div className="game-interface">
-        <PlayerInfo playerName={playerName} isEnemy={isEnemy(playerName)} isLeader={imLeader()} />
-        <PlayersList players={players} selectedGroup={selectedGroup} isLeader={imLeader()} isEnemy={isEnemy(playerName)} setSelectedGroup={setSelectedGroup} isEnemyF={isEnemy}/>
-         
-          {imLeader() && roundStatus === 'waiting-on-leader' && (
+
+      <div className="game-interface">
+        <div className="league">ContaminaDOS</div>
+        <div className="half">{game.name}</div>
+        <div className="half">Líder: {leader}</div>
+        <div className="scoreSection">
+          <div className="team">
+            <button style={{background: 'none', border: 'none'}}>&#129489;</button>
+            <span>Ciudadanos</span>
+          </div>
+        
+          <div className="score">
+            {citizensScore} : {enemiesScore}
+          </div>
+          <div className="team">
+            <span>Enemigos</span>
+            <button style={{background: 'none', border: 'none'}}>&#128520;</button>
+          </div>
+          
+        </div>
+        <div className="time">{roundStatus}</div>
+        <div className="score">
+           <div className="round-info" style={{fontSize: '0.8em', marginTop: '5px'}}>
+           {gameStatus ==='rounds' ? `Ronda: ${roundNumber}` : ''}  {currentPhase && gameStatus ==='rounds' ? `- Fase ${currentPhase}` : ''}
+           </div>
+          </div>
+      </div>
+
+            
+      <div className="game-interface">
+      <PlayerInfo playerName={playerName} isEnemy={isEnemy(playerName)} isLeader={imLeader()} />
+      <PlayersList players={players} selectedGroup={selectedGroup} isLeader={imLeader()} isEnemy={isEnemy(playerName)} setSelectedGroup={setSelectedGroup} isEnemyF={isEnemy}/>
+        
+        {imLeader() && roundStatus === 'waiting-on-leader' && (
+          <>
+            <div className="selected-group-info">
+              <h2 className="label">Grupo Seleccionado:</h2>
+              <ul>{selectedGroup.map((player, index) => (<li className="label" key={index}>{player}</li>))}</ul>
+            </div>
+          </>
+        )}
+
+        {proposedGroup.length > 0 && roundStatus === 'voting' && (<>
+          <ProposedGroup proposedGroup={proposedGroup} />
+          <VotingButtons vote={vote} roundStatus={roundStatus} submitVote={submitVote} />
+        </>)}
+
+        {allVoted && roundStatus === 'waiting-on-group' && imPartOfGroup(playerName) && (
+        <Actions playerName={playerName} enemies={enemies} action={action} submitAction={submitAction} />
+          )}
+        <div className="actions">
+          {isOwner() && gameStatus === 'lobby' && (
+            <button style={{marginTop: '10%'}} onClick={startGame}>Iniciar Juego</button>
+          )}
+          {imLeader() && gameStatus === 'rounds' && roundStatus === 'waiting-on-leader' &&(
             <>
-              <div className="selected-group-info">
-                <h2>Grupo Seleccionado:</h2>
-                <ul>{selectedGroup.map((player, index) => (<li key={index}>{player}</li>))}</ul>
-              </div>
+              <button style={{marginTop: '10%'}} onClick={submitGroup}>Enviar Grupo</button>
             </>
           )}
-
-          {proposedGroup.length > 0 && roundStatus === 'voting' && (<>
-            <ProposedGroup proposedGroup={proposedGroup} />
-            <VotingButtons vote={vote} roundStatus={roundStatus} submitVote={submitVote} />
-          </>)}
-
-          {allVoted && roundStatus === 'waiting-on-group' && imPartOfGroup(playerName) && (
-          <Actions playerName={playerName} enemies={enemies} action={action} submitAction={submitAction} />
-           )}
-          <div className="actions">
-            {isOwner() && gameStatus === 'lobby' && (
-              <button style={{marginTop: '10%'}} onClick={startGame}>Iniciar Juego</button>
-            )}
-            {imLeader() && gameStatus === 'rounds' && roundStatus === 'waiting-on-leader' &&(
-              <>
-                <button style={{marginTop: '10%'}} onClick={submitGroup}>Enviar Grupo</button>
-              </>
-            )}
-          </div>
         </div>
-        <ModalComponent
-          showModal={showModal}
-          handleCloseModal={handleCloseModal}
-          modalMessage={modalMessage}
-        />
-      </>
+      </div>
+      <ModalComponent
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        modalMessage={modalMessage}
+      />
     </div>
   );
 };

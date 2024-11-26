@@ -47,7 +47,7 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage ,SERVER}: any)
     <Container className="mt-5">
         <div className="mt-3">
               <Form.Group className="mb-3">
-                <Form.Label>Ingresa el Nombre del Juego</Form.Label>
+                <Form.Label style={{color: '#ECEADF'}}>Ingresa el Nombre del Juego</Form.Label>
                 <Form.Control
                   type="text"
                   onChange={(e) => setGameName(e.target.value)}
@@ -57,6 +57,7 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage ,SERVER}: any)
               </Form.Group>
               <Button
                 variant="info"
+                style={{backgroundColor: '#D97757', borderColor: '#D97757'}}
                 onClick={handleSearchByName}
                 disabled={gameName.trim().length <=2}
               >
@@ -68,15 +69,17 @@ const SearchByName = ({ handleJoinGame, setSelectedGame ,setStage ,SERVER}: any)
           <ListGroup.Item
             key={game.id}
             className="d-flex justify-content-between align-items-center"
+            style={{width: '625px', backgroundColor: '#393937'}}
           >
-            <div>
+            <div style={{color: '#D97757'}}>
               <strong>{game.name}</strong>
-              <span className="text-muted"> - Estado: {game.status}</span>
-              <span className="text-muted"> - Jugadores: {game.players.length}/10</span>
-              <span className="text-muted"> - Contraseña: {game.password ? 'Sí' : 'No'}</span>
+              <span style={{color: '#ECEADF'}}> - Estado: {game.status}</span>
+              <span style={{color: '#ECEADF'}}> - Jugadores: {game.players.length}/10</span>
+              <span style={{color: '#ECEADF'}}> - Contraseña: {game.password ? 'Sí' : 'No'}</span>
             </div>
             <Button
               variant="primary"
+              style={{backgroundColor: '#D97757', borderColor: '#D97757'}}
               onClick={() => {
                 setSelectedGame(game);
                 handleJoinGame(game);
